@@ -140,7 +140,7 @@ public class GCInfo {
         copy.setRegionUsedAfter(regionUsedAfter);
         copy.setRegionSize(regionSize);
         copy.setHeapUsedBefore(heapUsedBefore);
-        copy.setHeapUsedBefore(heapUsedBefore);
+        copy.setHeapUsedAfter(heapUsedAfter     );
         copy.setHeapSize(heapSize);
         copy.setGcTime(gcTime);
 

@@ -4,6 +4,9 @@ import io.gcat.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -79,23 +82,57 @@ public class ParNewCMSAnalyzer implements Analyzer {
 
     @Override
     public String query(String sql) {
+        try {
+            write(new File("/tmp/gcat.out"));
+        } catch (IOException e) {
+            logger.error("", e);
+        }
         Iterator<GCInfo> it = list.iterator();
         GCInfo first = it.next();
         long lastTimestamp = first.getTimestamp();
-        long gcTimeSum = first.getGcTime();
+        long maxGcTime = first.getGcTime();
+        long gcTimeSum = maxGcTime;
         long gcIntervalSum = 0;
+        long maxGcInterval = 0;
         long gcCount = 1;
+        long maxGcTimeTimestamp = 0;
+        long maxGcIntervalTimestamp = 0;
         while (it.hasNext()) {
             GCInfo r = it.next();
-            gcTimeSum += r.getGcTime();
-            gcIntervalSum += r.getTimestamp() - lastTimestamp;
+            long t = r.getTimestamp();
+            long gcTime = r.getGcTime();
+            gcTimeSum += gcTime;
+            if (maxGcTime < gcTime) {
+                maxGcTime = gcTime;
+                maxGcTimeTimestamp = t;
+            }
+            long interval = t - lastTimestamp;
+            if (maxGcInterval < interval) {
+                maxGcInterval = interval;
+                maxGcIntervalTimestamp = t;
+            }
+            gcIntervalSum += interval;
+            lastTimestamp = t;
             gcCount++;
         }
 
-        logger.info("GC time avg: " + (gcTimeSum / gcCount));
-        logger.info("GC interval avg: " + (gcIntervalSum / gcCount));
+        logger.info("GC time avg: " + (gcTimeSum / gcCount) + " ms");
+        logger.info("GC time max: " + (maxGcTime) + " ms");
+        logger.info("GC time max timestamp: " + DateUtil.format(maxGcTimeTimestamp) + "(" + maxGcTimeTimestamp + ")");
+        logger.info("GC interval avg: " + (gcIntervalSum / gcCount) + " ms");
+        logger.info("GC interval max: " + (maxGcInterval) + " ms");
+        logger.info("GC interval timestamp: " + DateUtil.format(maxGcIntervalTimestamp) + "(" + maxGcIntervalTimestamp + ")");
 
         return null;
+    }
+
+    public void write(File file) throws IOException {
+        try (FileWriter fileWriter = new FileWriter(file);) {
+            for (GCInfo r : list) {
+                fileWriter.write(r.toString());
+                fileWriter.write("\n");
+            }
+        }
     }
 
     private enum LineParser {
@@ -113,7 +150,7 @@ public class ParNewCMSAnalyzer implements Analyzer {
                 gcInfo.setTimestamp(timestamp);
                 return s + 2; //skip ": "
             } catch (Exception e) {
-                logger.error("ignore line: " + line);
+//                logger.error("ignore line: " + line);
                 return -1;
             }
         }

@@ -3,6 +3,9 @@ package io.gcat.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -15,6 +18,13 @@ public class DateUtil {
     public static DateTimeFormatter ISOFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
 
     public static DateTimeFormatter ISOFormatterWithMilli = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+
+    public static String format(long t) {
+        Instant instant = Instant.ofEpochMilli(t);
+        ZonedDateTime dt = instant.atZone(ZoneId.of("Asia/Shanghai"));
+
+        return dt.format(ISOFormatterWithMilli);
+    }
 
     public static long parse(String s) {
         ZonedDateTime zonedDateTime = tryParse(s, ISOFormatterWithMilli);
