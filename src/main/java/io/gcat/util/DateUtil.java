@@ -9,12 +9,13 @@ import java.util.Objects;
 
 public class DateUtil {
 
-    public static DateTimeFormatter ISOFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
+    private static DateTimeFormatter ISOFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
 
-    public static DateTimeFormatter ISOFormatterWithMilli = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+    private static DateTimeFormatter ISOFormatterWithMilli = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
     public static String format(long t) {
         Instant instant = Instant.ofEpochMilli(t);
+        //todo
         ZonedDateTime dt = instant.atZone(ZoneId.of("Asia/Shanghai"));
 
         return dt.format(ISOFormatterWithMilli);

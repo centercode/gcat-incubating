@@ -83,11 +83,7 @@ public class CMSParNewParser implements Parser {
 
     @Override
     public String query(String sql) {
-        try {
-            write(new File("/tmp/gcat.out"));
-        } catch (IOException e) {
-            logger.error("", e);
-        }
+//        write(new File("/tmp/gcat.out"));
         Iterator<GCInfo> it = list.iterator();
         GCInfo first = it.next();
         long lastTimestamp = first.getTimestamp();
@@ -127,12 +123,14 @@ public class CMSParNewParser implements Parser {
         return null;
     }
 
-    public void write(File file) throws IOException {
+    public void write(File file) {
         try (FileWriter fileWriter = new FileWriter(file)) {
             for (GCInfo r : list) {
                 fileWriter.write(r.toString());
                 fileWriter.write("\n");
             }
+        } catch (IOException e) {
+            logger.error("", e);
         }
     }
 

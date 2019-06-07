@@ -43,6 +43,7 @@ public class Gcat {
 
     /**
      * detect jvm version, parameters, and corresponding log parser
+     * TODO no jvm version and parameters info?
      */
     private void detectParser(BufferedReader reader) throws IOException {
         String jvmVersion = null;
