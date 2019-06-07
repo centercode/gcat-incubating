@@ -1,5 +1,9 @@
 package io.gcat;
 
+import io.gcat.entity.JVMParameter;
+import io.gcat.parser.CMSParNewParser;
+import io.gcat.parser.Parser;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -10,7 +14,7 @@ import java.util.regex.Pattern;
 
 public class Gcat {
 
-    private Analyzer analyzer;
+    private Parser parser;
 
     public static void main(String[] args) throws IOException {
         if (1 != args.length) {
@@ -19,26 +23,26 @@ public class Gcat {
 
         File logFile = new File(args[0]);
         Gcat gcat = new Gcat();
-        gcat.analyze(logFile);
+        gcat.parse(logFile);
     }
 
-    public void analyze(File logFile) throws IOException {
+    public void parse(File logFile) throws IOException {
         try (FileReader fileReader = new FileReader(logFile);
              BufferedReader reader = new BufferedReader(fileReader)) {
-            detectAnalyzer(reader);
-            feed(analyzer, reader);
-            analyzer.query(null);
+            detect(reader);
+            feed(parser, reader);
+            parser.query(null);
         }
     }
 
-    private void feed(Analyzer analyzer, BufferedReader reader) throws IOException {
+    private void feed(Parser parser, BufferedReader reader) throws IOException {
         String line;
         while ((line = reader.readLine()) != null) {
-            analyzer.feed(line);
+            parser.feed(line);
         }
     }
 
-    private void detectAnalyzer(BufferedReader reader) throws IOException {
+    private void detect(BufferedReader reader) throws IOException {
         String jvmVersion = null;
         JVMParameter jvmParameter = null;
 
@@ -56,7 +60,7 @@ public class Gcat {
             }
         }
 
-        analyzer = getAnalyzer(jvmVersion, jvmParameter);
+        parser = getParser(jvmVersion, jvmParameter);
     }
 
     private JVMParameter getJVMParameter(String line) {
@@ -96,7 +100,7 @@ public class Gcat {
         return null;
     }
 
-    private Analyzer getAnalyzer(String jvmVersion, JVMParameter jvmParamter) {
+    private Parser getParser(String jvmVersion, JVMParameter jvmParamter) {
         Objects.requireNonNull(jvmVersion);
         Objects.requireNonNull(jvmParamter);
 
@@ -104,9 +108,9 @@ public class Gcat {
         Boolean useConcMarkSweepGC = jvmParamter.is("UseConcMarkSweepGC");
 
         if (useParNewGC && useConcMarkSweepGC) {
-            return new ParNewCMSAnalyzer(jvmVersion, jvmParamter);
+            return new CMSParNewParser(jvmVersion, jvmParamter);
         } else {
-            throw new IllegalStateException("can not found match analyzer in flags!");
+            throw new IllegalStateException("can not found match parser in flags!");
         }
     }
 }

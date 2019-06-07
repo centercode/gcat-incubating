@@ -1,4 +1,4 @@
-package io.gcat;
+package io.gcat.entity;
 
 /**
  * size in K, time in milliSeconds

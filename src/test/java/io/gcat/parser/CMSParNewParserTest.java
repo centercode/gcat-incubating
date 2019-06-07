@@ -1,11 +1,11 @@
-package io.gcat;
+package io.gcat.parser;
 
 import io.gcat.util.DateUtil;
 import org.junit.Test;
 
-public class ParNewCMSAnalyzerTest {
+public class CMSParNewParserTest {
 
-    ParNewCMSAnalyzer analyzer = new ParNewCMSAnalyzer(null, null);
+    CMSParNewParser parser = new CMSParNewParser(null, null);
 
     @Test
     public void feed() throws Exception {
@@ -14,9 +14,9 @@ public class ParNewCMSAnalyzerTest {
                 "[ParNew: 1704620K->19722K(1887488K), 0.0293905 secs] " +
                 "13109374K->11433651K(31247616K), 0.0297339 secs] " +
                 "[Times: user=0.56 sys=0.00, real=0.03 secs]";
-        analyzer.feed(l);
-        analyzer.feed(l);
-        analyzer.query(null);
+        parser.feed(l);
+        parser.feed(l);
+        parser.query(null);
     }
 
     @Test

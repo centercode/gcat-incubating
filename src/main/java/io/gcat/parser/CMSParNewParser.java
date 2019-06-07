@@ -1,5 +1,7 @@
-package io.gcat;
+package io.gcat.parser;
 
+import io.gcat.entity.GCInfo;
+import io.gcat.entity.JVMParameter;
 import io.gcat.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,9 +15,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ParNewCMSAnalyzer implements Analyzer {
+public class CMSParNewParser implements Parser {
 
-    private static final Logger logger = LoggerFactory.getLogger(ParNewCMSAnalyzer.class);
+    private static final Logger logger = LoggerFactory.getLogger(CMSParNewParser.class);
 
     private static Pattern changePattern = Pattern.compile("(\\d+)K->(\\d+)K\\((\\d+)K\\), ([0-9.]+) secs");
 
@@ -35,7 +37,7 @@ public class ParNewCMSAnalyzer implements Analyzer {
 
     private List<GCInfo> list = new LinkedList<>();
 
-    public ParNewCMSAnalyzer(String jvmVersion, JVMParameter jvmParameter) {
+    public CMSParNewParser(String jvmVersion, JVMParameter jvmParameter) {
         this.jvmVersion = jvmVersion;
         this.jvmParameter = jvmParameter;
     }
@@ -48,10 +50,10 @@ public class ParNewCMSAnalyzer implements Analyzer {
     @Override
     public void feed(String line) {
         lineCount++;
-        analyzeLine(line);
+        parseLine(line);
     }
 
-    private void analyzeLine(String line) {
+    private void parseLine(String line) {
         LineParser parser = LineParser.INSTANCE.reset();
         int c = parser.parseTimestamp(line);
         if (c == -1) {

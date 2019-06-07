@@ -1,6 +1,6 @@
-package io.gcat;
+package io.gcat.parser;
 
-public interface Analyzer {
+public interface Parser {
 
     public void feed(String line);
 

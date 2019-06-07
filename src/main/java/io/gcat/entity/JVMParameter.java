@@ -1,4 +1,4 @@
-package io.gcat;
+package io.gcat.entity;
 
 import java.util.LinkedHashMap;
 

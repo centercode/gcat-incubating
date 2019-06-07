@@ -1,10 +1,6 @@
 package io.gcat.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -12,8 +8,6 @@ import java.time.format.DateTimeParseException;
 import java.util.Objects;
 
 public class DateUtil {
-
-    private static final Logger logger = LoggerFactory.getLogger(DateUtil.class);
 
     public static DateTimeFormatter ISOFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
 
