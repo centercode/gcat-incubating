@@ -87,12 +87,12 @@ public class CMSParNewParser implements Parser {
         GCInfo first = it.next();
         long lastTimestamp = first.getTimestamp();
         long maxGcTime = first.getGcTime();
+        long maxGcTimeTimestamp = 0;
         long gcTimeSum = maxGcTime;
         long gcIntervalSum = 0;
-        long maxGcInterval = 0;
+        long minGcInterval = Long.MAX_VALUE;
+        long minGcIntervalTimestamp = 0;
         long gcCount = 1;
-        long maxGcTimeTimestamp = 0;
-        long maxGcIntervalTimestamp = 0;
         while (it.hasNext()) {
             GCInfo r = it.next();
             long t = r.getTimestamp();
@@ -103,22 +103,25 @@ public class CMSParNewParser implements Parser {
                 maxGcTimeTimestamp = t;
             }
             long interval = t - lastTimestamp;
-            if (maxGcInterval < interval) {
-                maxGcInterval = interval;
-                maxGcIntervalTimestamp = t;
+            if (interval < minGcInterval) {
+                minGcInterval = interval;
+                minGcIntervalTimestamp = t;
             }
             gcIntervalSum += interval;
             lastTimestamp = t;
             gcCount++;
         }
 
-        logger.info("GC time avg: " + (gcTimeSum / gcCount) + " ms");
-        logger.info("GC time max: " + (maxGcTime) + " ms");
-        logger.info("GC time max timestamp: " + DateUtil.format(maxGcTimeTimestamp) + "(epoch: " + maxGcTimeTimestamp + ")");
-        logger.info("GC interval avg: " + (gcIntervalSum / gcCount) + " ms");
-        logger.info("GC interval max: " + (maxGcInterval) + " ms");
-        logger.info("GC interval timestamp: " + DateUtil.format(maxGcIntervalTimestamp) + "(epoch: " + maxGcIntervalTimestamp + ")");
+        Summary heapSummary = new Summary()
+                .setName("Heap")
+                .setAvgTime(gcTimeSum / gcCount)
+                .setMaxTime(maxGcTime)
+                .setMaxTimeTimestamp(maxGcTimeTimestamp)
+                .setAvgInterval(gcIntervalSum / gcCount)
+                .setMinInterval(minGcInterval)
+                .setMinIntervalTimestamp(minGcIntervalTimestamp);
 
+        System.out.println(heapSummary);
         return null;
     }
 
