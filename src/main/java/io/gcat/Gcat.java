@@ -1,14 +1,13 @@
 package io.gcat;
 
 import io.gcat.entity.JVMParameter;
-import io.gcat.parser.CMSParNewParser;
 import io.gcat.parser.Parser;
+import io.gcat.parser.Parsers;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,20 +28,23 @@ public class Gcat {
     public void parse(File logFile) throws IOException {
         try (FileReader fileReader = new FileReader(logFile);
              BufferedReader reader = new BufferedReader(fileReader)) {
-            detect(reader);
-            feed(parser, reader);
-            parser.query(null);
+            detectParser(reader);
+            feedParser(reader);
         }
+        parser.query(null);
     }
 
-    private void feed(Parser parser, BufferedReader reader) throws IOException {
+    private void feedParser(BufferedReader reader) throws IOException {
         String line;
         while ((line = reader.readLine()) != null) {
             parser.feed(line);
         }
     }
 
-    private void detect(BufferedReader reader) throws IOException {
+    /**
+     * detect jvm version, parameters, and corresponding log parser
+     */
+    private void detectParser(BufferedReader reader) throws IOException {
         String jvmVersion = null;
         JVMParameter jvmParameter = null;
 
@@ -60,11 +62,11 @@ public class Gcat {
             }
         }
 
-        parser = getParser(jvmVersion, jvmParameter);
+        parser = Parsers.getParser(jvmVersion, jvmParameter);
     }
 
     private JVMParameter getJVMParameter(String line) {
-        JVMParameter jvmParamter = new JVMParameter();
+        JVMParameter jvmParameter = new JVMParameter();
         String COMMAND_LINE_FLAGS = "CommandLine flags: ";
         String flagStr = line.substring(COMMAND_LINE_FLAGS.length(), line.length());
 
@@ -72,23 +74,25 @@ public class Gcat {
         while (s < flagStr.length()) {
             int e = flagStr.indexOf(" -XX:", s);
             if (e == -1) {
+                //line end
                 e = flagStr.length();
             }
             if (flagStr.charAt(s) == '+') {
+                //bool
                 String key = flagStr.substring(s + 1, e).trim();
-                jvmParamter.put(key, "true");
+                jvmParameter.put(key, "true");
             } else {
+                //key=value
                 String[] pair = flagStr.substring(s, e).split("=", 2);
                 if (pair.length != 2) {
                     System.out.println(pair[0]);
                 }
-                jvmParamter.put(pair[0], pair[1]);
+                jvmParameter.put(pair[0], pair[1]);
             }
-
             s = e + " -XX:".length();
         }
 
-        return jvmParamter;
+        return jvmParameter;
     }
 
     private String getJvmVersion(String line) {
@@ -98,19 +102,5 @@ public class Gcat {
         }
 
         return null;
-    }
-
-    private Parser getParser(String jvmVersion, JVMParameter jvmParamter) {
-        Objects.requireNonNull(jvmVersion);
-        Objects.requireNonNull(jvmParamter);
-
-        Boolean useParNewGC = jvmParamter.is("UseParNewGC");
-        Boolean useConcMarkSweepGC = jvmParamter.is("UseConcMarkSweepGC");
-
-        if (useParNewGC && useConcMarkSweepGC) {
-            return new CMSParNewParser(jvmVersion, jvmParamter);
-        } else {
-            throw new IllegalStateException("can not found match parser in flags!");
-        }
     }
 }

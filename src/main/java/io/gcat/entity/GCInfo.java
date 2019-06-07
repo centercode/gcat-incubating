@@ -1,7 +1,7 @@
 package io.gcat.entity;
 
 /**
- * size in K, time in milliSeconds
+ * size in KB, time in milliSeconds
  */
 public class GCInfo {
 
@@ -152,6 +152,6 @@ public class GCInfo {
     }
 
     public enum GCRegion {
-        New, Tentured, Perm
+        New, Tenured, Perm
     }
 }

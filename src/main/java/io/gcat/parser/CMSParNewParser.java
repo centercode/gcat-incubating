@@ -21,7 +21,7 @@ public class CMSParNewParser implements Parser {
 
     private static Pattern changePattern = Pattern.compile("(\\d+)K->(\\d+)K\\((\\d+)K\\), ([0-9.]+) secs");
 
-    private static Pattern realTimePattern = Pattern.compile("real=([0-9.]+) secs");
+    private static Pattern gcTimePattern = Pattern.compile("real=([0-9.]+) secs");
     /**
      * 1.6, 1.7, 1.8...
      **/
@@ -42,29 +42,28 @@ public class CMSParNewParser implements Parser {
         this.jvmParameter = jvmParameter;
     }
 
-    public static void main(String[] args) {
-        Matcher matcher = realTimePattern.matcher("real=0.03 secs");
-        System.out.println(matcher.find());
-    }
-
     @Override
     public void feed(String line) {
         lineCount++;
-        parseLine(line);
+        try {
+            parseLineInternal(line);
+        } catch (LineParseException e) {
+            String message = "not parseable line#{}:{}";
+            int end = line.length() < 30 ? line.length() : 30;
+            String shortLine = line.substring(0, end);
+            logger.warn(message, lineCount, shortLine);
+        }
     }
 
-    private void parseLine(String line) {
+    private void parseLineInternal(String line) throws LineParseException {
         LineParser parser = LineParser.INSTANCE.reset();
         int c = parser.parseTimestamp(line);
-        if (c == -1) {
-            return;
-        }
         c = parser.parseBootTime(line, c);
         String rest = line.substring(c);
         if (!CMS && rest.startsWith("[GC (Allocation Failure) ")) {
             c = parser.parseNewRegion(line, c);
             c = parser.parseHeap(line, c);
-            parser.parseTotalTime(line, c);
+            parser.parseGcTime(line, c);
             GCInfo gcInfo = parser.getGCInfo();
             gcInfo.setType(GCInfo.GCType.GC);
             gcInfo.setRegion(GCInfo.GCRegion.New);
@@ -76,7 +75,7 @@ public class CMSParNewParser implements Parser {
             CMS = false;
             GCInfo gcInfo = parser.getGCInfo();
             gcInfo.setType(GCInfo.GCType.CMS);
-            gcInfo.setRegion(GCInfo.GCRegion.Tentured);
+            gcInfo.setRegion(GCInfo.GCRegion.Tenured);
             gcInfo.setGcTime(gcInfo.getTimestamp() - CMSStartTimestamp);
             list.add(gcInfo);
         }
@@ -120,16 +119,16 @@ public class CMSParNewParser implements Parser {
 
         logger.info("GC time avg: " + (gcTimeSum / gcCount) + " ms");
         logger.info("GC time max: " + (maxGcTime) + " ms");
-        logger.info("GC time max timestamp: " + DateUtil.format(maxGcTimeTimestamp) + "(" + maxGcTimeTimestamp + ")");
+        logger.info("GC time max timestamp: " + DateUtil.format(maxGcTimeTimestamp) + "(epoch: " + maxGcTimeTimestamp + ")");
         logger.info("GC interval avg: " + (gcIntervalSum / gcCount) + " ms");
         logger.info("GC interval max: " + (maxGcInterval) + " ms");
-        logger.info("GC interval timestamp: " + DateUtil.format(maxGcIntervalTimestamp) + "(" + maxGcIntervalTimestamp + ")");
+        logger.info("GC interval timestamp: " + DateUtil.format(maxGcIntervalTimestamp) + "(epoch: " + maxGcIntervalTimestamp + ")");
 
         return null;
     }
 
     public void write(File file) throws IOException {
-        try (FileWriter fileWriter = new FileWriter(file);) {
+        try (FileWriter fileWriter = new FileWriter(file)) {
             for (GCInfo r : list) {
                 fileWriter.write(r.toString());
                 fileWriter.write("\n");
@@ -145,15 +144,14 @@ public class CMSParNewParser implements Parser {
 
         private GCInfo gcInfo = new GCInfo();
 
-        private int parseTimestamp(String line) {
+        private int parseTimestamp(String line) throws LineParseException {
             int s = "2019-05-05T15:52:07.063+0800".length();
             try {
                 long timestamp = DateUtil.parse(line.substring(0, s));
                 gcInfo.setTimestamp(timestamp);
                 return s + 2; //skip ": "
             } catch (Exception e) {
-//                logger.error("ignore line: " + line);
-                return -1;
+                throw new LineParseException();
             }
         }
 
@@ -198,11 +196,11 @@ public class CMSParNewParser implements Parser {
             return s + m.group().length() + 2; //skip "] "
         }
 
-        private void parseTotalTime(String line, int s) {
-            Matcher m = realTimePattern.matcher(line.substring(s, line.length()));
+        private void parseGcTime(String line, int s) {
+            Matcher m = gcTimePattern.matcher(line.substring(s, line.length()));
             if (m.find()) {
-                Float totalTime = Float.valueOf(m.group(1));
-                gcInfo.setGcTime((long) (totalTime * 1000));
+                Float gcTime = Float.valueOf(m.group(1));
+                gcInfo.setGcTime((long) (gcTime * 1000));
             } else {
                 throw new IllegalStateException("not found real time.");
             }
@@ -214,9 +212,6 @@ public class CMSParNewParser implements Parser {
         }
 
         public GCInfo getGCInfo() {
-            if (null == gcInfo) {
-                return null;
-            }
             return gcInfo.copy();
         }
 
