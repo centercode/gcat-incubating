@@ -8,6 +8,6 @@ public class GcatTest {
 
     @Test
     public void run() throws IOException {
-        Gcat.main(new String[]{"/tmp/gc.log"});
+        Gcat.main(new String[]{"/tmp/h.log"});
     }
 }

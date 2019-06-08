@@ -119,7 +119,7 @@ public class CMSParNewParser implements Parser {
                 .setAvgPause(pauseSum / count)
                 .setMaxPause(maxPause)
                 .setMaxPauseTimestamp(maxPauseTimestamp)
-                .setAvgInterval(intervalSum / count)
+                .setAvgInterval(intervalSum / (count - 1))
                 .setMinInterval(minInterval)
                 .setMinIntervalTimestamp(minIntervalTimestamp);
 
