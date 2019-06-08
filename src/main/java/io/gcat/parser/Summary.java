@@ -94,15 +94,16 @@ public class Summary {
 
     @Override
     public String toString() {
-        return "\n" + name + " GC Time:\n" +
+        return "\n" + name + " GC Count: " + count + "\n" +
+                name + " GC Time:\n" +
                 "\tavg: " + avgTime + " ms\n" +
-                "\tmax: " + maxTime + " ms\n" +
-                "\tmax timestamp: " + DateUtil.format(maxTimeTimestamp) +
-                "(epoch: " + maxTimeTimestamp + ")\n" +
+                "\tmax: " + maxTime + " ms" +
+                "(at " + DateUtil.format(maxTimeTimestamp) +
+                ", epoch: " + maxTimeTimestamp + ")\n" +
                 name + " GC Interval:\n" +
                 "\tavg: " + (avgInterval) + " ms\n" +
-                "\tmin: " + (minInterval) + " ms\n" +
-                "\tmin timestamp: " + DateUtil.format(minIntervalTimestamp) +
-                "(epoch: " + minIntervalTimestamp + ")\n";
+                "\tmin: " + (minInterval) + " ms" +
+                "(at " + DateUtil.format(minIntervalTimestamp) +
+                ", epoch: " + minIntervalTimestamp + ")\n";
     }
 }

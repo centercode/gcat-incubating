@@ -86,40 +86,41 @@ public class CMSParNewParser implements Parser {
         Iterator<GCInfo> it = list.iterator();
         GCInfo first = it.next();
         long lastTimestamp = first.getTimestamp();
-        long maxGcTime = first.getGcTime();
-        long maxGcTimeTimestamp = 0;
-        long gcTimeSum = maxGcTime;
-        long gcIntervalSum = 0;
-        long minGcInterval = Long.MAX_VALUE;
-        long minGcIntervalTimestamp = 0;
-        long gcCount = 1;
+        long maxTime = first.getGcTime();
+        long maxTimeTimestamp = 0;
+        long timeSum = maxTime;
+        long intervalSum = 0;
+        long minInterval = Long.MAX_VALUE;
+        long minIntervalTimestamp = 0;
+        int count = 1;
         while (it.hasNext()) {
             GCInfo r = it.next();
             long t = r.getTimestamp();
             long gcTime = r.getGcTime();
-            gcTimeSum += gcTime;
-            if (maxGcTime < gcTime) {
-                maxGcTime = gcTime;
-                maxGcTimeTimestamp = t;
+            timeSum += gcTime;
+            if (maxTime < gcTime) {
+                maxTime = gcTime;
+                maxTimeTimestamp = t;
             }
             long interval = t - lastTimestamp;
-            if (interval < minGcInterval) {
-                minGcInterval = interval;
-                minGcIntervalTimestamp = t;
+            if (interval < minInterval) {
+                minInterval = interval;
+                minIntervalTimestamp = t;
             }
-            gcIntervalSum += interval;
+            intervalSum += interval;
             lastTimestamp = t;
-            gcCount++;
+            count++;
         }
 
         Summary heapSummary = new Summary()
                 .setName("Heap")
-                .setAvgTime(gcTimeSum / gcCount)
-                .setMaxTime(maxGcTime)
-                .setMaxTimeTimestamp(maxGcTimeTimestamp)
-                .setAvgInterval(gcIntervalSum / gcCount)
-                .setMinInterval(minGcInterval)
-                .setMinIntervalTimestamp(minGcIntervalTimestamp);
+                .setCount(count)
+                .setAvgTime(timeSum / count)
+                .setMaxTime(maxTime)
+                .setMaxTimeTimestamp(maxTimeTimestamp)
+                .setAvgInterval(intervalSum / count)
+                .setMinInterval(minInterval)
+                .setMinIntervalTimestamp(minIntervalTimestamp);
 
         System.out.println(heapSummary);
         return null;

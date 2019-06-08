@@ -25,15 +25,15 @@ java -cp  gcat.jar io.gcat.Gcat {gc.log}
    累计时长、占比
    gc原因占比
 
-### Example Summary
+example output:
 
 ```
 Heap GC Time:
 	avg: 72 ms
-	max: 25490 ms
-	max timestamp: 2019-05-09T02:05:30.342+08(epoch: 1557338730342)
+	max: 25490 ms(at 2019-05-09T02:05:30.342+08, epoch: 1557338730342)
 Heap GC Interval:
 	avg: 3551 ms
-	min: 10 ms
-	min timestamp: 2019-05-09T05:06:37.091+08(epoch: 1557349597091)
+	min: 10 ms(at 2019-05-09T05:06:37.091+08, epoch: 1557349597091)
 ```
+
+### CMS+ParNew algorithm
