@@ -18,7 +18,7 @@ java -cp  gcat.jar io.gcat.Gcat {gc.log}
 
 1. gc duration
 2. gc count
-3. avg|max gc time
+3. avg|max gc pause time
 4. avg|min gc interval
 5. JVM Heap Size
    年轻代，老年代，meta各区的总大小，峰值大小
@@ -27,7 +27,7 @@ java -cp  gcat.jar io.gcat.Gcat {gc.log}
 8. Gc暂停时长分布
 9. CMS各阶段耗时
    累计时长、占比
-   gc原因占比
+10. gc原因占比
 
 example output:
 

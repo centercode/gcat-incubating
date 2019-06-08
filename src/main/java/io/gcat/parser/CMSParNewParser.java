@@ -61,12 +61,11 @@ public class CMSParNewParser implements Parser {
         parser.parseTimestamp();
         parser.parseBootTime();
         if (parser.restStartWith("[GC (Allocation Failure) ")) {
-            parser.parseNewRegion();
+            parser.parseYoungGeneration();
             parser.parseHeap();
-            parser.parseGcTime();
+            parser.parseGcPause();
             GCInfo gcInfo = parser.getGCInfo();
-            gcInfo.setType(GCInfo.GCType.GC);
-            gcInfo.setRegion(GCInfo.GCRegion.New);
+            gcInfo.setType(GCInfo.GCType.ParNew);
             list.add(gcInfo);
         } else if (parser.restStartWith("[GC (CMS Initial Mark)")) {
             CMS = true;
@@ -75,8 +74,7 @@ public class CMSParNewParser implements Parser {
             CMS = false;
             GCInfo gcInfo = parser.getGCInfo();
             gcInfo.setType(GCInfo.GCType.CMS);
-            gcInfo.setRegion(GCInfo.GCRegion.Tenured);
-            gcInfo.setGcTime(gcInfo.getTimestamp() - CMSStartTimestamp);
+            gcInfo.setGcPause(gcInfo.getTimestamp() - CMSStartTimestamp);
             list.add(gcInfo);
         }
     }
@@ -88,9 +86,9 @@ public class CMSParNewParser implements Parser {
         GCInfo first = it.next();
         long firstTimestamp = first.getTimestamp();
         long lastTimestamp = firstTimestamp;
-        long maxTime = first.getGcTime();
-        long maxTimeTimestamp = 0;
-        long timeSum = maxTime;
+        long maxPause = first.getGcPause();
+        long maxPauseTimestamp = 0;
+        long pauseSum = maxPause;
         long intervalSum = 0;
         long minInterval = Long.MAX_VALUE;
         long minIntervalTimestamp = 0;
@@ -98,11 +96,11 @@ public class CMSParNewParser implements Parser {
         while (it.hasNext()) {
             GCInfo r = it.next();
             long t = r.getTimestamp();
-            long gcTime = r.getGcTime();
-            timeSum += gcTime;
-            if (maxTime < gcTime) {
-                maxTime = gcTime;
-                maxTimeTimestamp = t;
+            long gcTime = r.getGcPause();
+            pauseSum += gcTime;
+            if (maxPause < gcTime) {
+                maxPause = gcTime;
+                maxPauseTimestamp = t;
             }
             long interval = t - lastTimestamp;
             if (interval < minInterval) {
@@ -118,9 +116,9 @@ public class CMSParNewParser implements Parser {
                 .setName("Heap")
                 .setCount(count)
                 .setDuration(Duration.ofMillis(lastTimestamp - firstTimestamp))
-                .setAvgTime(timeSum / count)
-                .setMaxTime(maxTime)
-                .setMaxTimeTimestamp(maxTimeTimestamp)
+                .setAvgPause(pauseSum / count)
+                .setMaxPause(maxPause)
+                .setMaxPauseTimestamp(maxPauseTimestamp)
                 .setAvgInterval(intervalSum / count)
                 .setMinInterval(minInterval)
                 .setMinIntervalTimestamp(minIntervalTimestamp);
@@ -171,7 +169,7 @@ public class CMSParNewParser implements Parser {
             cursor = e + 2; //skip ": "
         }
 
-        private void parseNewRegion() {
+        private void parseYoungGeneration() {
             int s = cursor;
             s = line.indexOf("[ParNew: ", s) + "[ParNew: ".length();
             Matcher m = changePattern.matcher(line.substring(s, line.length()));
@@ -181,9 +179,9 @@ public class CMSParNewParser implements Parser {
             Integer regionUsedBefore = Integer.valueOf(m.group(1));
             Integer regionUsedAfter = Integer.valueOf(m.group(2));
             Integer regionSize = Integer.valueOf(m.group(3));
-            gcInfo.setRegionUsedBefore(regionUsedBefore);
-            gcInfo.setRegionUsedAfter(regionUsedAfter);
-            gcInfo.setRegionSize(regionSize);
+            gcInfo.setYoungUsedBefore(regionUsedBefore);
+            gcInfo.setYoungUsedAfter(regionUsedAfter);
+            gcInfo.setYoungSize(regionSize);
 
             cursor = s + m.group().length() + 2; //skip "] "
         }
@@ -205,12 +203,12 @@ public class CMSParNewParser implements Parser {
             cursor = s + m.group().length() + 2; //skip "] "
         }
 
-        private void parseGcTime() {
+        private void parseGcPause() {
             int s = cursor;
             Matcher m = gcTimePattern.matcher(line.substring(s, line.length()));
             if (m.find()) {
                 Float gcTime = Float.valueOf(m.group(1));
-                gcInfo.setGcTime((long) (gcTime * 1000));
+                gcInfo.setGcPause((long) (gcTime * 1000));
             } else {
                 throw new IllegalStateException("not found real time.");
             }

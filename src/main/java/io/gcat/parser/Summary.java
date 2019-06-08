@@ -12,11 +12,11 @@ public class Summary {
 
     private Duration duration;
 
-    private long avgTime;
+    private long avgPause;
 
-    private long maxTime;
+    private long maxPause;
 
-    private long maxTimeTimestamp;
+    private long maxPauseTimestamp;
 
     private long avgInterval;
 
@@ -51,30 +51,30 @@ public class Summary {
         return this;
     }
 
-    public long getAvgTime() {
-        return avgTime;
+    public long getAvgPause() {
+        return avgPause;
     }
 
-    public Summary setAvgTime(long avgTime) {
-        this.avgTime = avgTime;
+    public Summary setAvgPause(long avgPause) {
+        this.avgPause = avgPause;
         return this;
     }
 
-    public long getMaxTime() {
-        return maxTime;
+    public long getMaxPause() {
+        return maxPause;
     }
 
-    public Summary setMaxTime(long maxTime) {
-        this.maxTime = maxTime;
+    public Summary setMaxPause(long maxPause) {
+        this.maxPause = maxPause;
         return this;
     }
 
-    public long getMaxTimeTimestamp() {
-        return maxTimeTimestamp;
+    public long getMaxPauseTimestamp() {
+        return maxPauseTimestamp;
     }
 
-    public Summary setMaxTimeTimestamp(long maxTimeTimestamp) {
-        this.maxTimeTimestamp = maxTimeTimestamp;
+    public Summary setMaxPauseTimestamp(long maxPauseTimestamp) {
+        this.maxPauseTimestamp = maxPauseTimestamp;
         return this;
     }
 
@@ -114,11 +114,11 @@ public class Summary {
 
         return "\n" + name + " GC Duration:" + durationStr + "\n" +
                 name + " GC Count: " + count + "\n" +
-                name + " GC Time:\n" +
-                "\tavg: " + avgTime + " ms\n" +
-                "\tmax: " + maxTime + " ms" +
-                "(at " + DateUtil.format(maxTimeTimestamp) +
-                ", epoch: " + maxTimeTimestamp + ")\n" +
+                name + " GC Pause Time:\n" +
+                "\tavg: " + avgPause + " ms\n" +
+                "\tmax: " + maxPause + " ms" +
+                "(at " + DateUtil.format(maxPauseTimestamp) +
+                ", epoch: " + maxPauseTimestamp + ")\n" +
                 name + " GC Interval:\n" +
                 "\tavg: " + (avgInterval) + " ms\n" +
                 "\tmin: " + (minInterval) + " ms" +

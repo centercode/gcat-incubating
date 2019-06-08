@@ -11,21 +11,40 @@ public class GCInfo {
 
     private GCType type;
 
-    private GCRegion region;
+    /**
+     * Young Generation used size before gc, peak size, eden + one survivor
+     */
+    private int youngUsedBefore;
 
-    private int regionUsedBefore;
+    /**
+     * Young Generation used size after gc, eden + one survivor
+     */
+    private int youngUsedAfter;
 
-    private int regionUsedAfter;
+    /**
+     * Young Generation size, eden + one survivor
+     */
+    private int youngSize;
 
-    private int regionSize;
-
+    /**
+     * Heap used size before gc, eden + one survivor + old
+     */
     private int heapUsedBefore;
 
+    /**
+     * Heap used size after gc, eden + one survivor + old
+     */
     private int heapUsedAfter;
 
+    /**
+     * Heap size, eden + one survivor + old
+     */
     private int heapSize;
 
-    private long gcTime;
+    /**
+     * gc real time
+     */
+    private long gcPause;
 
     public long getTimestamp() {
         return timestamp;
@@ -51,36 +70,28 @@ public class GCInfo {
         this.type = type;
     }
 
-    public GCRegion getRegion() {
-        return region;
+    public int getYoungUsedBefore() {
+        return youngUsedBefore;
     }
 
-    public void setRegion(GCRegion region) {
-        this.region = region;
+    public void setYoungUsedBefore(int youngUsedBefore) {
+        this.youngUsedBefore = youngUsedBefore;
     }
 
-    public int getRegionUsedBefore() {
-        return regionUsedBefore;
+    public int getYoungUsedAfter() {
+        return youngUsedAfter;
     }
 
-    public void setRegionUsedBefore(int regionUsedBefore) {
-        this.regionUsedBefore = regionUsedBefore;
+    public void setYoungUsedAfter(int youngUsedAfter) {
+        this.youngUsedAfter = youngUsedAfter;
     }
 
-    public int getRegionUsedAfter() {
-        return regionUsedAfter;
+    public int getYoungSize() {
+        return youngSize;
     }
 
-    public void setRegionUsedAfter(int regionUsedAfter) {
-        this.regionUsedAfter = regionUsedAfter;
-    }
-
-    public int getRegionSize() {
-        return regionSize;
-    }
-
-    public void setRegionSize(int regionSize) {
-        this.regionSize = regionSize;
+    public void setYoungSize(int youngSize) {
+        this.youngSize = youngSize;
     }
 
     public int getHeapUsedBefore() {
@@ -107,12 +118,12 @@ public class GCInfo {
         this.heapSize = heapSize;
     }
 
-    public long getGcTime() {
-        return gcTime;
+    public long getGcPause() {
+        return gcPause;
     }
 
-    public void setGcTime(long gcTime) {
-        this.gcTime = gcTime;
+    public void setGcPause(long gcPause) {
+        this.gcPause = gcPause;
     }
 
     @Override
@@ -121,14 +132,13 @@ public class GCInfo {
                 "timestamp=" + timestamp +
                 ", bootTime=" + bootTime +
                 ", type=" + type +
-                ", region=" + region +
-                ", regionUsedBefore=" + regionUsedBefore +
-                ", regionUsedAfter=" + regionUsedAfter +
-                ", regionSize=" + regionSize +
+                ", youngUsedBefore=" + youngUsedBefore +
+                ", youngUsedAfter=" + youngUsedAfter +
+                ", youngSize=" + youngSize +
                 ", heapUsedBefore=" + heapUsedBefore +
                 ", heapUsedAfter=" + heapUsedAfter +
                 ", heapSize=" + heapSize +
-                ", gcTime=" + gcTime +
+                ", gcTime=" + gcPause +
                 '}';
     }
 
@@ -136,22 +146,18 @@ public class GCInfo {
         GCInfo copy = new GCInfo();
         copy.setTimestamp(timestamp);
         copy.setBootTime(bootTime);
-        copy.setRegionUsedBefore(regionUsedBefore);
-        copy.setRegionUsedAfter(regionUsedAfter);
-        copy.setRegionSize(regionSize);
+        copy.setYoungUsedBefore(youngUsedBefore);
+        copy.setYoungUsedAfter(youngUsedAfter);
+        copy.setYoungSize(youngSize);
         copy.setHeapUsedBefore(heapUsedBefore);
         copy.setHeapUsedAfter(heapUsedAfter);
         copy.setHeapSize(heapSize);
-        copy.setGcTime(gcTime);
+        copy.setGcPause(gcPause);
 
         return copy;
     }
 
     public enum GCType {
-        GC, CMS
-    }
-
-    public enum GCRegion {
-        New, Tenured, Perm
+        ParNew, CMS
     }
 }
