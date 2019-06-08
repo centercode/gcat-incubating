@@ -1,4 +1,4 @@
-package io.gcat.parser;
+package io.gcat.summary;
 
 import io.gcat.util.DateUtil;
 

@@ -2,6 +2,7 @@ package io.gcat.parser;
 
 import io.gcat.entity.GCInfo;
 import io.gcat.entity.JVMParameter;
+import io.gcat.summary.Summary;
 import io.gcat.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
