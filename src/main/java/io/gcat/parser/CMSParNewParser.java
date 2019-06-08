@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -59,7 +60,7 @@ public class CMSParNewParser implements Parser {
         LineParser parser = LineParser.INSTANCE.reset(line);
         parser.parseTimestamp();
         parser.parseBootTime();
-        if (!CMS && parser.restStartWith("[GC (Allocation Failure) ")) {
+        if (parser.restStartWith("[GC (Allocation Failure) ")) {
             parser.parseNewRegion();
             parser.parseHeap();
             parser.parseGcTime();
@@ -85,7 +86,8 @@ public class CMSParNewParser implements Parser {
 //        write(new File("/tmp/gcat.out"));
         Iterator<GCInfo> it = list.iterator();
         GCInfo first = it.next();
-        long lastTimestamp = first.getTimestamp();
+        long firstTimestamp = first.getTimestamp();
+        long lastTimestamp = firstTimestamp;
         long maxTime = first.getGcTime();
         long maxTimeTimestamp = 0;
         long timeSum = maxTime;
@@ -115,6 +117,7 @@ public class CMSParNewParser implements Parser {
         Summary heapSummary = new Summary()
                 .setName("Heap")
                 .setCount(count)
+                .setDuration(Duration.ofMillis(lastTimestamp - firstTimestamp))
                 .setAvgTime(timeSum / count)
                 .setMaxTime(maxTime)
                 .setMaxTimeTimestamp(maxTimeTimestamp)

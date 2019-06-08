@@ -2,11 +2,15 @@ package io.gcat.parser;
 
 import io.gcat.util.DateUtil;
 
+import java.time.Duration;
+
 public class Summary {
 
     private String name;
 
     private int count;
+
+    private Duration duration;
 
     private long avgTime;
 
@@ -35,6 +39,15 @@ public class Summary {
 
     public Summary setCount(int count) {
         this.count = count;
+        return this;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public Summary setDuration(Duration duration) {
+        this.duration = duration;
         return this;
     }
 
@@ -94,7 +107,13 @@ public class Summary {
 
     @Override
     public String toString() {
-        return "\n" + name + " GC Count: " + count + "\n" +
+        String durationStr = String.format("%sHour %smin %ssec",
+                duration.toHours(),
+                duration.toMinutes() % 60,
+                duration.getSeconds() % 60);
+
+        return "\n" + name + " GC Duration:" + durationStr + "\n" +
+                name + " GC Count: " + count + "\n" +
                 name + " GC Time:\n" +
                 "\tavg: " + avgTime + " ms\n" +
                 "\tmax: " + maxTime + " ms" +

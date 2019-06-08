@@ -3,9 +3,20 @@ package io.gcat.parser;
 import io.gcat.util.DateUtil;
 import org.junit.Test;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 public class CMSParNewParserTest {
 
     CMSParNewParser parser = new CMSParNewParser(null, null);
+
+    public static void main(String[] args) {
+        LocalDateTime dt1 = LocalDateTime.parse("2019-05-05T11:46:06.199");
+        LocalDateTime dt2 = LocalDateTime.parse("2019-05-09T17:23:07.987");
+        Duration d = Duration.between(dt1, dt2);
+        String s = String.format("%sHour %smin %ssec", d.toHours(), d.toMinutes() % 60, d.getSeconds() % 60);
+        System.out.println(s);
+    }
 
     @Test
     public void feed() throws Exception {

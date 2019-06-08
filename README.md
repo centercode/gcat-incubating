@@ -16,12 +16,16 @@ java -cp  gcat.jar io.gcat.Gcat {gc.log}
 ### Measure
 
 
-1. JVM Heap Size
+1. gc duration
+2. gc count
+3. avg|max gc time
+4. avg|min gc interval
+5. JVM Heap Size
    年轻代，老年代，meta各区的总大小，峰值大小
-2. 吞吐量
-3. 延迟（平均暂停时间，最大暂停时间）
-4. Gc暂停时长分布
-5. CMS各阶段耗时
+6. 吞吐量
+7. 延迟（平均暂停时间，最大暂停时间）
+8. Gc暂停时长分布
+9. CMS各阶段耗时
    累计时长、占比
    gc原因占比
 
@@ -37,3 +41,7 @@ Heap GC Interval:
 ```
 
 ### CMS+ParNew algorithm
+
+gc duration: duration between first valid gc log timestamp to the last valid gc log timestamp.
+
+gc count: yong gc + tenured gc count.
