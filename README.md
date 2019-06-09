@@ -44,4 +44,30 @@ Heap GC Interval:
 
 gc duration: duration between first valid gc log timestamp to the last valid gc log timestamp.
 
-gc count: yong gc + tenured gc count.
+gc count: yong gc + old gc count.
+
+
+
+### Reference
+
+> [Minor GC、Major GC和Full GC之间的区别](http://www.importnew.com/15820.html)
+>
+> [Major GC和Full GC的区别是什么？触发条件呢？](https://www.zhihu.com/question/41922036)
+>
+> [Java之CMS GC的7个阶段](https://zhanjia.iteye.com/blog/2435266)
+>
+> [快速解读GC日志](https://blog.csdn.net/renfufei/article/details/49230943)
+>
+> [Java GC 日志格式理解小结](https://blog.csdn.net/FIRE_TRAY/article/details/51397905)
+>
+> [GC 日志格式](https://www.jianshu.com/p/4c6ecfd6f15f)
+>
+> [Understanding the Java Garbage Collection Log](https://dzone.com/articles/understanding-garbage-collection-log)
+>
+> [Understanding Garbage Collection Logs](https://plumbr.io/blog/garbage-collection/understanding-garbage-collection-logs)
+>
+> [浅谈 G1 GC 日志格式](https://my.oschina.net/dabird/blog/710444)
+>
+> [Useful JVM Flags – Part 8 (GC Logging)](https://blog.codecentric.de/en/2014/01/useful-jvm-flags-part-8-gc-logging/)
+>
+> [JVM GC 日志详解](https://juejin.im/post/5c80b0f451882532cd57b541)

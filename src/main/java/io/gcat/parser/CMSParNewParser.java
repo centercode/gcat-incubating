@@ -82,7 +82,7 @@ public class CMSParNewParser implements Parser {
     @Override
     public String query(String sql) {
 //        write(new File("/tmp/gcat.out"));
-        Visitor visitor = Visitor.of();
+        Visitor visitor = Visitor.of(jvmVersion, jvmParameter);
         visitor.visit(list);
         Summary heapSummary = Summary.create(visitor);
         System.out.println(heapSummary);

@@ -1,11 +1,18 @@
 package io.gcat.summary;
 
 import io.gcat.entity.GCInfo;
+import io.gcat.entity.JVMParameter;
 
 import java.util.Iterator;
 import java.util.List;
 
 public class Visitor {
+
+    private String jvmVersion;
+
+    private JVMParameter jvmParameter;
+
+    private HeapSize heapSize;
 
     private long firstTimestamp;
 
@@ -25,8 +32,22 @@ public class Visitor {
 
     private long minIntervalTimestamp;
 
-    public static Visitor of() {
-        return new Visitor();
+    public Visitor(String jvmVersion, JVMParameter jvmParameter) {
+        this.jvmVersion = jvmVersion;
+        this.jvmParameter = jvmParameter;
+        initHeapSize();
+    }
+
+    public static Visitor of(String jvmVersion, JVMParameter jvmParameter) {
+        return new Visitor(jvmVersion, jvmParameter);
+    }
+
+    private void initHeapSize() {
+        long initialHeapSize = jvmParameter.getLong("InitialHeapSize");
+        long maxHeapSize = jvmParameter.getLong("MaxHeapSize");
+        long newSize = jvmParameter.getLong("NewSize");
+        long maxNewSize = jvmParameter.getLong("MaxNewSize");
+        this.heapSize = new HeapSize(initialHeapSize, maxHeapSize, newSize, maxNewSize);
     }
 
     public void visit(List<GCInfo> list) {
@@ -37,7 +58,27 @@ public class Visitor {
         }
     }
 
+    private void visitHeapSize(GCInfo info) {
+        int heapSize = info.getHeapSize();
+        int youngSize = info.getYoungSize();
+        int youngUsedBefore = info.getYoungUsedBefore();
+        int youngUsedAfter = info.getYoungUsedAfter();
+        int heapUsedBefore = info.getHeapUsedBefore();
+        int heapUsedAfter = info.getHeapUsedAfter();
+        int r = jvmParameter.getInt("SurvivorRatio");
+        int survivorSize = youngSize / (r + 1);
+
+        this.heapSize.casYoungAllocated(youngSize + survivorSize);
+        this.heapSize.casOldAllocated(heapSize - youngSize);
+        this.heapSize.casYoungPeak(youngUsedBefore);
+
+        int oldBefore = heapUsedBefore - youngUsedBefore;
+        int oldAfter = heapUsedAfter - youngUsedAfter;
+        this.heapSize.casOldPeak(Math.max(oldBefore, oldAfter));
+    }
+
     private void visitFirst(GCInfo first) {
+        visitHeapSize(first);
         this.firstTimestamp = first.getTimestamp();
         this.lastTimestamp = first.getTimestamp();
         this.pauseSum = first.getGcPause();
@@ -50,6 +91,7 @@ public class Visitor {
     }
 
     private void visitRest(GCInfo r) {
+        visitHeapSize(r);
         long ts = r.getTimestamp();
         long gcPause = r.getGcPause();
         long interval = ts - lastTimestamp;
@@ -73,6 +115,10 @@ public class Visitor {
             minInterval = interval;
             minIntervalTimestamp = t;
         }
+    }
+
+    public HeapSize getHeapSize() {
+        return heapSize;
     }
 
     public long getFirstTimestamp() {

@@ -6,6 +6,8 @@ import java.time.Duration;
 
 public class Summary {
 
+    private HeapSize heapSize;
+
     private String name;
 
     private int count;
@@ -27,6 +29,7 @@ public class Summary {
     public static Summary create(Visitor visitor) {
         return new Summary()
                 .setName("Heap")
+                .setHeapSize(visitor.getHeapSize())
                 .setCount(visitor.getCount())
                 .setDuration(Duration.ofMillis(visitor.getLastTimestamp() - visitor.getFirstTimestamp()))
                 .setAvgPause(visitor.getPauseSum() / visitor.getCount())
@@ -35,6 +38,11 @@ public class Summary {
                 .setAvgInterval(visitor.getIntervalSum() / (visitor.getCount() - 1))
                 .setMinInterval(visitor.getMinInterval())
                 .setMinIntervalTimestamp(visitor.getMinIntervalTimestamp());
+    }
+
+    public Summary setHeapSize(HeapSize heapSize) {
+        this.heapSize = heapSize;
+        return this;
     }
 
     public String getName() {
@@ -125,7 +133,8 @@ public class Summary {
                 duration.toMinutes() % 60,
                 duration.getSeconds() % 60);
 
-        return "\n" + name + " GC Duration:" + durationStr + "\n" +
+        return "\n" + heapSize.toString()
+                + name + " GC Duration:" + durationStr + "\n" +
                 name + " GC Count: " + count + "\n" +
                 name + " GC Pause Time:\n" +
                 "\tavg: " + avgPause + " ms\n" +
