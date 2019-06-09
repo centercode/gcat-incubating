@@ -1,5 +1,7 @@
 package io.gcat.summary;
 
+import io.gcat.entity.GCInfo;
+
 public class Visitor {
 
     private long firstTimestamp;
@@ -19,6 +21,44 @@ public class Visitor {
     private long minInterval;
 
     private long minIntervalTimestamp;
+
+    public static Visitor create(GCInfo first) {
+        Visitor visitor = new Visitor();
+        visitor.firstTimestamp = first.getTimestamp();
+        visitor.lastTimestamp = first.getTimestamp();
+        visitor.pauseSum = first.getGcPause();
+        visitor.maxPause = first.getGcPause();
+        visitor.maxPauseTimestamp = Long.MIN_VALUE;
+        visitor.intervalSum = 0;
+        visitor.minInterval = Long.MAX_VALUE;
+        visitor.minIntervalTimestamp = Long.MIN_VALUE;
+        visitor.count = 1;
+        return visitor;
+    }
+
+    public Visitor incr() {
+        count++;
+        return this;
+    }
+
+    public Visitor addPause(long gcPause, long t) {
+        pauseSum += gcPause;
+        if (maxPause < gcPause) {
+            maxPause = gcPause;
+            maxPauseTimestamp = t;
+        }
+
+        return this;
+    }
+
+    public Visitor addInterval(long interval, long t) {
+        intervalSum += interval;
+        if (interval < minInterval) {
+            minInterval = interval;
+            minIntervalTimestamp = t;
+        }
+        return this;
+    }
 
     public long getFirstTimestamp() {
         return firstTimestamp;

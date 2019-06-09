@@ -3,6 +3,7 @@ package io.gcat.parser;
 import io.gcat.entity.GCInfo;
 import io.gcat.entity.JVMParameter;
 import io.gcat.summary.Summary;
+import io.gcat.summary.Visitor;
 import io.gcat.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -85,45 +85,19 @@ public class CMSParNewParser implements Parser {
 //        write(new File("/tmp/gcat.out"));
         Iterator<GCInfo> it = list.iterator();
         GCInfo first = it.next();
-        long firstTimestamp = first.getTimestamp();
-        long lastTimestamp = firstTimestamp;
-        long maxPause = first.getGcPause();
-        long maxPauseTimestamp = 0;
-        long pauseSum = maxPause;
-        long intervalSum = 0;
-        long minInterval = Long.MAX_VALUE;
-        long minIntervalTimestamp = 0;
-        int count = 1;
+        Visitor visitor = Visitor.create(first);
         while (it.hasNext()) {
             GCInfo r = it.next();
-            long t = r.getTimestamp();
-            long gcTime = r.getGcPause();
-            pauseSum += gcTime;
-            if (maxPause < gcTime) {
-                maxPause = gcTime;
-                maxPauseTimestamp = t;
-            }
-            long interval = t - lastTimestamp;
-            if (interval < minInterval) {
-                minInterval = interval;
-                minIntervalTimestamp = t;
-            }
-            intervalSum += interval;
-            lastTimestamp = t;
-            count++;
+            long ts = r.getTimestamp();
+            long gcPause = r.getGcPause();
+            long interval = ts - visitor.getLastTimestamp();
+            visitor.addPause(gcPause, ts);
+            visitor.addInterval(interval, ts);
+            visitor.setLastTimestamp(ts);
+            visitor.incr();
         }
 
-        Summary heapSummary = new Summary()
-                .setName("Heap")
-                .setCount(count)
-                .setDuration(Duration.ofMillis(lastTimestamp - firstTimestamp))
-                .setAvgPause(pauseSum / count)
-                .setMaxPause(maxPause)
-                .setMaxPauseTimestamp(maxPauseTimestamp)
-                .setAvgInterval(intervalSum / (count - 1))
-                .setMinInterval(minInterval)
-                .setMinIntervalTimestamp(minIntervalTimestamp);
-
+        Summary heapSummary = Summary.create(visitor);
         System.out.println(heapSummary);
         return null;
     }

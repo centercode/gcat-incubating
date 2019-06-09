@@ -24,6 +24,19 @@ public class Summary {
 
     private long minIntervalTimestamp;
 
+    public static Summary create(Visitor visitor) {
+        return new Summary()
+                .setName("Heap")
+                .setCount(visitor.getCount())
+                .setDuration(Duration.ofMillis(visitor.getLastTimestamp() - visitor.getFirstTimestamp()))
+                .setAvgPause(visitor.getPauseSum() / visitor.getCount())
+                .setMaxPause(visitor.getMaxPause())
+                .setMaxPauseTimestamp(visitor.getMaxPauseTimestamp())
+                .setAvgInterval(visitor.getIntervalSum() / (visitor.getCount() - 1))
+                .setMinInterval(visitor.getMinInterval())
+                .setMinIntervalTimestamp(visitor.getMinIntervalTimestamp());
+    }
+
     public String getName() {
         return name;
     }
