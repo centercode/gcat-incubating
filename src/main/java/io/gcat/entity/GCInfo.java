@@ -144,7 +144,7 @@ public class GCInfo {
                 ", heapUsedBefore=" + heapUsedBefore +
                 ", heapUsedAfter=" + heapUsedAfter +
                 ", heapSize=" + heapSize +
-                ", gcTime=" + gcPause +
+                ", gcPause=" + gcPause +
                 '}';
     }
 

@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -83,20 +82,8 @@ public class CMSParNewParser implements Parser {
     @Override
     public String query(String sql) {
 //        write(new File("/tmp/gcat.out"));
-        Iterator<GCInfo> it = list.iterator();
-        GCInfo first = it.next();
-        Visitor visitor = Visitor.create(first);
-        while (it.hasNext()) {
-            GCInfo r = it.next();
-            long ts = r.getTimestamp();
-            long gcPause = r.getGcPause();
-            long interval = ts - visitor.getLastTimestamp();
-            visitor.addPause(gcPause, ts);
-            visitor.addInterval(interval, ts);
-            visitor.setLastTimestamp(ts);
-            visitor.incr();
-        }
-
+        Visitor visitor = Visitor.of();
+        visitor.visit(list);
         Summary heapSummary = Summary.create(visitor);
         System.out.println(heapSummary);
         return null;
@@ -182,8 +169,8 @@ public class CMSParNewParser implements Parser {
             int s = cursor;
             Matcher m = gcTimePattern.matcher(line.substring(s, line.length()));
             if (m.find()) {
-                Float gcTime = Float.valueOf(m.group(1));
-                gcInfo.setGcPause((long) (gcTime * 1000));
+                Float gcPause = Float.valueOf(m.group(1));
+                gcInfo.setGcPause((long) (gcPause * 1000));
             } else {
                 throw new IllegalStateException("not found real time.");
             }
