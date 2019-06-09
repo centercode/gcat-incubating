@@ -66,7 +66,7 @@ public class CMSParNewParser implements Parser {
             parser.parseHeap();
             parser.parseGcPause();
             GCInfo gcInfo = parser.getGCInfo();
-            gcInfo.setType(GCInfo.GCType.ParNew);
+            gcInfo.setType(GCInfo.GCType.YongGC);
             list.add(gcInfo);
         } else if (parser.restStartWith("[GC (CMS Initial Mark)")) {
             CMS = true;
@@ -74,7 +74,7 @@ public class CMSParNewParser implements Parser {
         } else if (parser.restStartWith("[CMS-concurrent-reset:")) {
             CMS = false;
             GCInfo gcInfo = parser.getGCInfo();
-            gcInfo.setType(GCInfo.GCType.CMS);
+            gcInfo.setType(GCInfo.GCType.OldGC);
             gcInfo.setGcPause(gcInfo.getTimestamp() - CMSStartTimestamp);
             list.add(gcInfo);
         }

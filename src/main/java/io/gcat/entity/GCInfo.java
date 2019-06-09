@@ -1,12 +1,18 @@
 package io.gcat.entity;
 
 /**
- * size in KB, time in milliSeconds
+ * size in KB
  */
 public class GCInfo {
 
+    /**
+     * in milliSeconds
+     */
     private long timestamp;
 
+    /**
+     * in milliSeconds
+     */
     private long bootTime;
 
     private GCType type;
@@ -42,7 +48,7 @@ public class GCInfo {
     private int heapSize;
 
     /**
-     * gc real time
+     * gc Stop-The-World time, in milliSeconds
      */
     private long gcPause;
 
@@ -158,6 +164,6 @@ public class GCInfo {
     }
 
     public enum GCType {
-        ParNew, CMS
+        YongGC, OldGC, MixedGC, FullGC
     }
 }
