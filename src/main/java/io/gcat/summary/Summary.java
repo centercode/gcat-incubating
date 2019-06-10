@@ -26,18 +26,22 @@ public class Summary {
 
     private long minIntervalTimestamp;
 
+    private double throughput;
+
     public static Summary create(Visitor visitor) {
+        long d = visitor.getLastTimestamp() - visitor.getFirstTimestamp();
         return new Summary()
                 .setName("Heap")
                 .setHeapSize(visitor.getHeapSize())
                 .setCount(visitor.getCount())
-                .setDuration(Duration.ofMillis(visitor.getLastTimestamp() - visitor.getFirstTimestamp()))
+                .setDuration(Duration.ofMillis(d))
                 .setAvgPause(visitor.getPauseSum() / visitor.getCount())
                 .setMaxPause(visitor.getMaxPause())
                 .setMaxPauseTimestamp(visitor.getMaxPauseTimestamp())
                 .setAvgInterval(visitor.getIntervalSum() / (visitor.getCount() - 1))
                 .setMinInterval(visitor.getMinInterval())
-                .setMinIntervalTimestamp(visitor.getMinIntervalTimestamp());
+                .setMinIntervalTimestamp(visitor.getMinIntervalTimestamp())
+                .setThroughput(1 - 1.0 * visitor.getPauseSum() / d);
     }
 
     public Summary setHeapSize(HeapSize heapSize) {
@@ -126,15 +130,20 @@ public class Summary {
         return this;
     }
 
+    public double getThroughput() {
+        return throughput;
+    }
+
+    public Summary setThroughput(double throughput) {
+        this.throughput = throughput;
+        return this;
+    }
+
     @Override
     public String toString() {
-        String durationStr = String.format("%sHour %smin %ssec",
-                duration.toHours(),
-                duration.toMinutes() % 60,
-                duration.getSeconds() % 60);
-
-        return "\n" + heapSize.toString()
-                + name + " GC Duration:" + durationStr + "\n" +
+        return "\n" + heapSize.toString() +
+                "Throughput: " + String.format("%.2f%%\n", throughput * 100) +
+                name + " GC Duration:" + DateUtil.format(duration) + "\n" +
                 name + " GC Count: " + count + "\n" +
                 name + " GC Pause Time:\n" +
                 "\tavg: " + avgPause + " ms\n" +
