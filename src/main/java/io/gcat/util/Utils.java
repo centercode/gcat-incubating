@@ -8,21 +8,26 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Objects;
 
-public class DateUtil {
+public class Utils {
 
     private static DateTimeFormatter ISOFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
 
     private static DateTimeFormatter ISOFormatterWithMilli = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
-    public static String format(long t) {
-        Instant instant = Instant.ofEpochMilli(t);
-        //todo
-        ZonedDateTime dt = instant.atZone(ZoneId.of("Asia/Shanghai"));
-
-        return dt.format(ISOFormatterWithMilli);
+    public static String format(double d) {
+        return String.format("%.2f%%\n", d * 100);
     }
 
-    public static String format(Duration duration) {
+    public static String formatDate(long t) {
+        Instant instant = Instant.ofEpochMilli(t);
+        //todo
+        ZonedDateTime dt = instant.atZone(ZoneId.of("+08:00"));
+
+        return dt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    }
+
+    public static String formatDuration(long d) {
+        Duration duration = Duration.ofMillis(d);
         StringBuilder sb = new StringBuilder();
         long h = duration.toHours();
         long m = duration.toMinutes() % 60;

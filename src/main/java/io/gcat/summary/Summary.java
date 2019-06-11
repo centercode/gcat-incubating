@@ -1,8 +1,6 @@
 package io.gcat.summary;
 
-import io.gcat.util.DateUtil;
-
-import java.time.Duration;
+import io.gcat.util.Utils;
 
 public class Summary {
 
@@ -12,7 +10,7 @@ public class Summary {
 
     private int count;
 
-    private Duration duration;
+    private long duration;
 
     private long avgPause;
 
@@ -34,7 +32,7 @@ public class Summary {
                 .setName("Heap")
                 .setHeapSize(visitor.getHeapSize())
                 .setCount(visitor.getCount())
-                .setDuration(Duration.ofMillis(d))
+                .setDuration(d)
                 .setAvgPause(visitor.getPauseSum() / visitor.getCount())
                 .setMaxPause(visitor.getMaxPause())
                 .setMaxPauseTimestamp(visitor.getMaxPauseTimestamp())
@@ -67,11 +65,11 @@ public class Summary {
         return this;
     }
 
-    public Duration getDuration() {
+    public long getDuration() {
         return duration;
     }
 
-    public Summary setDuration(Duration duration) {
+    public Summary setDuration(long duration) {
         this.duration = duration;
         return this;
     }
@@ -142,18 +140,16 @@ public class Summary {
     @Override
     public String toString() {
         return "\n" + heapSize.toString() +
-                "Throughput: " + String.format("%.2f%%\n", throughput * 100) +
-                name + " GC Duration:" + DateUtil.format(duration) + "\n" +
+                "Throughput: " + Utils.format(throughput) +
+                name + " GC Duration:" + Utils.formatDuration(duration) + "\n" +
                 name + " GC Count: " + count + "\n" +
                 name + " GC Pause Time:\n" +
                 "\tavg: " + avgPause + " ms\n" +
                 "\tmax: " + maxPause + " ms" +
-                "(at " + DateUtil.format(maxPauseTimestamp) +
-                ", epoch: " + maxPauseTimestamp + ")\n" +
+                "(at " + Utils.formatDate(maxPauseTimestamp) + ")\n" +
                 name + " GC Interval:\n" +
                 "\tavg: " + (avgInterval) + " ms\n" +
                 "\tmin: " + (minInterval) + " ms" +
-                "(at " + DateUtil.format(minIntervalTimestamp) +
-                ", epoch: " + minIntervalTimestamp + ")\n";
+                "(at " + Utils.formatDate(minIntervalTimestamp) + ")\n";
     }
 }

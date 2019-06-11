@@ -4,7 +4,7 @@ import io.gcat.entity.GCInfo;
 import io.gcat.entity.JVMParameter;
 import io.gcat.summary.Summary;
 import io.gcat.summary.Visitor;
-import io.gcat.util.DateUtil;
+import io.gcat.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,23 +23,18 @@ public class CMSParNewParser implements Parser {
     private static Pattern changePattern = Pattern.compile("(\\d+)K->(\\d+)K\\((\\d+)K\\), ([0-9.]+) secs");
 
     private static Pattern gcTimePattern = Pattern.compile("real=([0-9.]+) secs");
-    /**
-     * 1.6, 1.7, 1.8...
-     **/
-    private String jvmVersion;
 
     private JVMParameter jvmParameter;
 
     private long lineCount = 0;
 
-    private boolean CMS;
+    private boolean cms;
 
-    private long CMSStartTimestamp;
+    private long cmsStartTimestamp;
 
     private List<GCInfo> list = new LinkedList<>();
 
-    public CMSParNewParser(String jvmVersion, JVMParameter jvmParameter) {
-        this.jvmVersion = jvmVersion;
+    public CMSParNewParser(JVMParameter jvmParameter) {
         this.jvmParameter = jvmParameter;
     }
 
@@ -68,13 +63,13 @@ public class CMSParNewParser implements Parser {
             gcInfo.setType(GCInfo.GCType.YongGC);
             list.add(gcInfo);
         } else if (parser.restStartWith("[GC (CMS Initial Mark)")) {
-            CMS = true;
-            CMSStartTimestamp = parser.getTimestamp();
+            cms = true;
+            cmsStartTimestamp = parser.getTimestamp();
         } else if (parser.restStartWith("[CMS-concurrent-reset:")) {
-            CMS = false;
+            cms = false;
             GCInfo gcInfo = parser.getGCInfo();
             gcInfo.setType(GCInfo.GCType.OldGC);
-            gcInfo.setGcPause(gcInfo.getTimestamp() - CMSStartTimestamp);
+            gcInfo.setGcPause(gcInfo.getTimestamp() - cmsStartTimestamp);
             list.add(gcInfo);
         }
     }
@@ -82,7 +77,7 @@ public class CMSParNewParser implements Parser {
     @Override
     public String query(String sql) {
 //        write(new File("/tmp/gcat.out"));
-        Visitor visitor = Visitor.of(jvmVersion, jvmParameter);
+        Visitor visitor = Visitor.of(jvmParameter);
         visitor.visit(list);
         Summary heapSummary = Summary.create(visitor);
         System.out.println(heapSummary);
@@ -113,7 +108,7 @@ public class CMSParNewParser implements Parser {
         private void parseTimestamp() throws LineParseException {
             int s = "2019-05-05T15:52:07.063+0800".length();
             try {
-                long timestamp = DateUtil.parse(line.substring(0, s));
+                long timestamp = Utils.parse(line.substring(0, s));
                 gcInfo.setTimestamp(timestamp);
                 cursor = s + 2; //skip ": "
             } catch (Exception e) {

@@ -11,15 +11,14 @@ public class Parsers {
     private Parsers() {
     }
 
-    public static Parser getParser(String jvmVersion, JVMParameter jvmParameter) {
-        Objects.requireNonNull(jvmVersion);
+    public static Parser getParser(JVMParameter jvmParameter) {
         Objects.requireNonNull(jvmParameter);
 
         Boolean useParNewGC = jvmParameter.is("UseParNewGC");
         Boolean useConcMarkSweepGC = jvmParameter.is("UseConcMarkSweepGC");
 
         if (useParNewGC && useConcMarkSweepGC) {
-            return new CMSParNewParser(jvmVersion, jvmParameter);
+            return new CMSParNewParser(jvmParameter);
         } else {
             throw new IllegalStateException("can not found match parser in flags!");
         }

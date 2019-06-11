@@ -62,8 +62,9 @@ public class Gcat {
                 break;
             }
         }
+        jvmParameter.setJvmVersion(jvmVersion);
 
-        parser = Parsers.getParser(jvmVersion, jvmParameter);
+        parser = Parsers.getParser(jvmParameter);
     }
 
     private JVMParameter getJVMParameter(String line) {

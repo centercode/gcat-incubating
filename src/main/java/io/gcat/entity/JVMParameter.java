@@ -3,6 +3,10 @@ package io.gcat.entity;
 import java.util.LinkedHashMap;
 
 public class JVMParameter {
+    /**
+     * 1.6, 1.7, 1.8...
+     **/
+    private String jvmVersion;
 
     private LinkedHashMap<String, String> data = new LinkedHashMap<>();
 
@@ -39,5 +43,14 @@ public class JVMParameter {
 
     public void put(String key, String value) {
         data.put(key, value);
+    }
+
+    public String getJvmVersion() {
+        return jvmVersion;
+    }
+
+    public JVMParameter setJvmVersion(String jvmVersion) {
+        this.jvmVersion = jvmVersion;
+        return this;
     }
 }

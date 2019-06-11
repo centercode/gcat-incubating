@@ -1,22 +1,11 @@
 package io.gcat.parser;
 
-import io.gcat.util.DateUtil;
+import io.gcat.util.Utils;
 import org.junit.Test;
-
-import java.time.Duration;
-import java.time.LocalDateTime;
 
 public class CMSParNewParserTest {
 
-    CMSParNewParser parser = new CMSParNewParser(null, null);
-
-    public static void main(String[] args) {
-        LocalDateTime dt1 = LocalDateTime.parse("2019-05-05T11:46:06.199");
-        LocalDateTime dt2 = LocalDateTime.parse("2019-05-09T17:23:07.987");
-        Duration d = Duration.between(dt1, dt2);
-        String s = String.format("%sHour %smin %ssec", d.toHours(), d.toMinutes() % 60, d.getSeconds() % 60);
-        System.out.println(s);
-    }
+    CMSParNewParser parser = new CMSParNewParser(null);
 
     @Test
     public void feed() throws Exception {
@@ -33,10 +22,10 @@ public class CMSParNewParserTest {
     @Test
     public void dateFormatTest() throws Exception {
         String dt =
-//                "2019-05-05T11:46:06Z";
+                "2019-05-05T11:46:06Z";
 //                "2019-05-05T11:46:06.001Z";
 //                "2019-05-05T11:46:06+0800";
-                "2019-05-05T11:46:06.632+0800";
-        System.out.println(DateUtil.parse(dt));
+//                "2019-05-05T11:46:06.632+0800";
+        System.out.println(Utils.parse(dt));
     }
 }

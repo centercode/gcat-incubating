@@ -8,8 +8,6 @@ import java.util.List;
 
 public class Visitor {
 
-    private String jvmVersion;
-
     private JVMParameter jvmParameter;
 
     private HeapSize heapSize;
@@ -32,14 +30,13 @@ public class Visitor {
 
     private long minIntervalTimestamp;
 
-    public Visitor(String jvmVersion, JVMParameter jvmParameter) {
-        this.jvmVersion = jvmVersion;
+    public Visitor(JVMParameter jvmParameter) {
         this.jvmParameter = jvmParameter;
         initHeapSize();
     }
 
-    public static Visitor of(String jvmVersion, JVMParameter jvmParameter) {
-        return new Visitor(jvmVersion, jvmParameter);
+    public static Visitor of(JVMParameter jvmParameter) {
+        return new Visitor(jvmParameter);
     }
 
     private void initHeapSize() {
