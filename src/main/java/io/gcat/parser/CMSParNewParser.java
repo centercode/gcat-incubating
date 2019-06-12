@@ -30,7 +30,7 @@ public class CMSParNewParser implements Parser {
 
     private boolean cms;
 
-    private long cmsStartTimestamp;
+    private long cmsPause = 0;
 
     private List<GCInfo> list = new LinkedList<>();
 
@@ -52,7 +52,7 @@ public class CMSParNewParser implements Parser {
     }
 
     private void parseLineInternal(String line) throws LineParseException {
-        LineParser parser = LineParser.INSTANCE.reset(line);
+        ParNewParser parser = ParNewParser.INSTANCE.reset(line);
         parser.parseTimestamp();
         parser.parseBootTime();
         if (parser.restStartWith("[GC (Allocation Failure) ")) {
@@ -64,13 +64,15 @@ public class CMSParNewParser implements Parser {
             list.add(gcInfo);
         } else if (parser.restStartWith("[GC (CMS Initial Mark)")) {
             cms = true;
-            cmsStartTimestamp = parser.getTimestamp();
+            cmsPause += parser.parseGcPause();
+        } else if (parser.restStartWith("[GC (CMS Final Remark)")) {
+            cmsPause += parser.parseGcPause();
         } else if (parser.restStartWith("[CMS-concurrent-reset:")) {
-            cms = false;
             GCInfo gcInfo = parser.getGCInfo();
             gcInfo.setType(GCInfo.GCType.OldGC);
-            gcInfo.setGcPause(gcInfo.getTimestamp() - cmsStartTimestamp);
+            gcInfo.setGcPause(cmsPause);
             list.add(gcInfo);
+            cms = false;
         }
     }
 
@@ -95,7 +97,7 @@ public class CMSParNewParser implements Parser {
         }
     }
 
-    private enum LineParser {
+    private enum ParNewParser {
 
         INSTANCE;
 
@@ -160,12 +162,15 @@ public class CMSParNewParser implements Parser {
             cursor = s + m.group().length() + 2; //skip "] "
         }
 
-        private void parseGcPause() {
+        private long parseGcPause() {
             int s = cursor;
             Matcher m = gcTimePattern.matcher(line.substring(s, line.length()));
             if (m.find()) {
                 Float gcPause = Float.valueOf(m.group(1));
-                gcInfo.setGcPause((long) (gcPause * 1000));
+                long gcPauseMilli = (long) (gcPause * 1000);
+                gcInfo.setGcPause(gcPauseMilli);
+
+                return gcPauseMilli;
             } else {
                 throw new IllegalStateException("not found real time.");
             }
@@ -175,7 +180,7 @@ public class CMSParNewParser implements Parser {
             return line.substring(cursor).startsWith(prefix);
         }
 
-        public LineParser reset(String line) {
+        public ParNewParser reset(String line) {
             this.line = line;
             this.cursor = 0;
             this.gcInfo = new GCInfo();
