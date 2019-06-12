@@ -31,6 +31,7 @@ public class Gcat {
             detectParser(reader);
             feedParser(reader);
         }
+        parser.stop();
         parser.query(null);
     }
 

@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -20,17 +21,17 @@ public class CMSParNewParser implements Parser {
 
     private static final Logger logger = LoggerFactory.getLogger(CMSParNewParser.class);
 
-    private static Pattern changePattern = Pattern.compile("(\\d+)K->(\\d+)K\\((\\d+)K\\), ([0-9.]+) secs");
+    static Pattern gcPausePtn = Pattern.compile("real=([0-9.]+) secs");
 
-    private static Pattern gcTimePattern = Pattern.compile("real=([0-9.]+) secs");
+    static Pattern startPtn = Pattern.compile("^(\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d.\\d{3}\\+\\d{4}): ([\\d.]+): ");
 
     private JVMParameter jvmParameter;
 
     private long lineCount = 0;
 
-    private boolean cms;
+    private ParNewParser parNewParser = ParNewParser.INSTANCE;
 
-    private long cmsPause = 0;
+    private CMSParser cmsParser = CMSParser.INSTANCE;
 
     private List<GCInfo> list = new LinkedList<>();
 
@@ -51,28 +52,40 @@ public class CMSParNewParser implements Parser {
         }
     }
 
+    @Override
+    public void stop() {
+        list.sort(Comparator.comparingLong(GCInfo::getTimestamp));
+    }
+
     private void parseLineInternal(String line) throws LineParseException {
-        ParNewParser parser = ParNewParser.INSTANCE.reset(line);
-        parser.parseTimestamp();
-        parser.parseBootTime();
-        if (parser.restStartWith("[GC (Allocation Failure) ")) {
-            parser.parseYoungGeneration();
-            parser.parseHeap();
-            parser.parseGcPause();
-            GCInfo gcInfo = parser.getGCInfo();
-            gcInfo.setType(GCInfo.GCType.YongGC);
+        Matcher matcher = startPtn.matcher(line);
+        if (!matcher.find()) {
+            return;
+        }
+        int offset = matcher.group().length();
+        long timestamp = Utils.parse(matcher.group(1));
+        long bootTime = (long) (Float.valueOf(matcher.group(2)) * 1000);
+        if (line.startsWith("[GC (Allocation Failure) ", offset)) {
+            parNewParser.reset(line, offset);
+            parNewParser.parseYoungGeneration();
+            parNewParser.parseHeap();
+            parNewParser.parseGcPause();
+            GCInfo gcInfo = parNewParser.getGCInfo();
+            gcInfo.setTimestamp(timestamp);
+            gcInfo.setBootTime(bootTime);
             list.add(gcInfo);
-        } else if (parser.restStartWith("[GC (CMS Initial Mark)")) {
-            cms = true;
-            cmsPause += parser.parseGcPause();
-        } else if (parser.restStartWith("[GC (CMS Final Remark)")) {
-            cmsPause += parser.parseGcPause();
-        } else if (parser.restStartWith("[CMS-concurrent-reset:")) {
-            GCInfo gcInfo = parser.getGCInfo();
-            gcInfo.setType(GCInfo.GCType.OldGC);
-            gcInfo.setGcPause(cmsPause);
+        } else if (line.startsWith("[GC (CMS Initial Mark)", offset)) {
+            cmsParser.reset(line);
+            cmsParser.parseInitalMarkLine();
+            GCInfo gcInfo = cmsParser.getGCInfo();
+            gcInfo.setTimestamp(timestamp);
+            gcInfo.setBootTime(bootTime);
             list.add(gcInfo);
-            cms = false;
+        } else if (line.startsWith("[GC (CMS Final Remark)", offset)) {
+            cmsParser.setLine(line);
+            cmsParser.parseFinalMarkLine();
+        } else if (line.startsWith("[CMS-concurrent-reset:", offset)) {
+            cmsParser.stop();
         }
     }
 
@@ -94,109 +107,6 @@ public class CMSParNewParser implements Parser {
             }
         } catch (IOException e) {
             logger.error("", e);
-        }
-    }
-
-    private enum ParNewParser {
-
-        INSTANCE;
-
-        int cursor;
-
-        private String line;
-
-        private GCInfo gcInfo = new GCInfo();
-
-        private void parseTimestamp() throws LineParseException {
-            int s = "2019-05-05T15:52:07.063+0800".length();
-            try {
-                long timestamp = Utils.parse(line.substring(0, s));
-                gcInfo.setTimestamp(timestamp);
-                cursor = s + 2; //skip ": "
-            } catch (Exception e) {
-                throw new LineParseException();
-            }
-        }
-
-        private void parseBootTime() {
-            int s = cursor;
-            int e = line.indexOf(": ", s);
-            //parse timestamp
-            Float bootTime = Float.valueOf(line.substring(s, e));
-            gcInfo.setBootTime((long) (bootTime * 1000));
-
-            cursor = e + 2; //skip ": "
-        }
-
-        private void parseYoungGeneration() {
-            int s = cursor;
-            s = line.indexOf("[ParNew: ", s) + "[ParNew: ".length();
-            Matcher m = changePattern.matcher(line.substring(s, line.length()));
-            if (!m.find()) {
-                throw new IllegalArgumentException("not found new region change.");
-            }
-            Integer regionUsedBefore = Integer.valueOf(m.group(1));
-            Integer regionUsedAfter = Integer.valueOf(m.group(2));
-            Integer regionSize = Integer.valueOf(m.group(3));
-            gcInfo.setYoungUsedBefore(regionUsedBefore);
-            gcInfo.setYoungUsedAfter(regionUsedAfter);
-            gcInfo.setYoungSize(regionSize);
-
-            cursor = s + m.group().length() + 2; //skip "] "
-        }
-
-        private void parseHeap() {
-            int s = cursor;
-            Matcher m = changePattern.matcher(line.substring(s, line.length()));
-            if (!m.find()) {
-                throw new IllegalArgumentException("not found heap change.");
-            }
-            Integer heapUsedBefore = Integer.valueOf(m.group(1));
-            Integer heapUsedAfter = Integer.valueOf(m.group(2));
-            Integer heapSize = Integer.valueOf(m.group(3));
-
-            gcInfo.setHeapUsedBefore(heapUsedBefore);
-            gcInfo.setHeapUsedAfter(heapUsedAfter);
-            gcInfo.setHeapSize(heapSize);
-
-            cursor = s + m.group().length() + 2; //skip "] "
-        }
-
-        private long parseGcPause() {
-            int s = cursor;
-            Matcher m = gcTimePattern.matcher(line.substring(s, line.length()));
-            if (m.find()) {
-                Float gcPause = Float.valueOf(m.group(1));
-                long gcPauseMilli = (long) (gcPause * 1000);
-                gcInfo.setGcPause(gcPauseMilli);
-
-                return gcPauseMilli;
-            } else {
-                throw new IllegalStateException("not found real time.");
-            }
-        }
-
-        private boolean restStartWith(String prefix) {
-            return line.substring(cursor).startsWith(prefix);
-        }
-
-        public ParNewParser reset(String line) {
-            this.line = line;
-            this.cursor = 0;
-            this.gcInfo = new GCInfo();
-            return this;
-        }
-
-        public GCInfo getGCInfo() {
-            return gcInfo.copy();
-        }
-
-        public long getTimestamp() {
-            return gcInfo.getTimestamp();
-        }
-
-        public long getBootTime() {
-            return gcInfo.getBootTime();
         }
     }
 }

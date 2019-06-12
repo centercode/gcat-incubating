@@ -152,6 +152,7 @@ public class GCInfo {
         GCInfo copy = new GCInfo();
         copy.setTimestamp(timestamp);
         copy.setBootTime(bootTime);
+        copy.setType(type);
         copy.setYoungUsedBefore(youngUsedBefore);
         copy.setYoungUsedAfter(youngUsedAfter);
         copy.setYoungSize(youngSize);

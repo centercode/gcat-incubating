@@ -14,9 +14,11 @@ public class CMSParNewParserTest {
                 "[ParNew: 1704620K->19722K(1887488K), 0.0293905 secs] " +
                 "13109374K->11433651K(31247616K), 0.0297339 secs] " +
                 "[Times: user=0.56 sys=0.00, real=0.03 secs]";
-        parser.feed(l);
-        parser.feed(l);
-        parser.query(null);
+        boolean b = CMSParNewParser.startPtn.matcher(l).find();
+        System.out.println(b);
+//        parser.feed(l);
+//        parser.feed(l);
+//        parser.query(null);
     }
 
     @Test
