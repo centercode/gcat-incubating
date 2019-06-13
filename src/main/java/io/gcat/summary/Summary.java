@@ -1,6 +1,9 @@
 package io.gcat.summary;
 
 import io.gcat.util.Utils;
+import io.gcat.visitor.GCInterval;
+import io.gcat.visitor.GCPause;
+import io.gcat.visitor.Visitor;
 
 public class Summary {
 
@@ -8,38 +11,25 @@ public class Summary {
 
     private String name;
 
-    private int count;
+    private int gcCount;
 
     private long duration;
 
-    private long avgPause;
+    private GCPause gcPause;
 
-    private long maxPause;
-
-    private long maxPauseTimestamp;
-
-    private long avgInterval;
-
-    private long minInterval;
-
-    private long minIntervalTimestamp;
+    private GCInterval gcInterval;
 
     private double throughput;
 
     public static Summary create(Visitor visitor) {
-        long d = visitor.getLastTimestamp() - visitor.getFirstTimestamp();
         return new Summary()
                 .setName("Heap")
                 .setHeapSize(visitor.getHeapSize())
-                .setCount(visitor.getCount())
-                .setDuration(d)
-                .setAvgPause(visitor.getPauseSum() / visitor.getCount())
-                .setMaxPause(visitor.getMaxPause())
-                .setMaxPauseTimestamp(visitor.getMaxPauseTimestamp())
-                .setAvgInterval(visitor.getIntervalSum() / (visitor.getCount() - 1))
-                .setMinInterval(visitor.getMinInterval())
-                .setMinIntervalTimestamp(visitor.getMinIntervalTimestamp())
-                .setThroughput(1 - 1.0 * visitor.getPauseSum() / d);
+                .setGcCount(visitor.getGCCount())
+                .setDuration(visitor.getDuration())
+                .setGcPause(visitor.getGCPause())
+                .setGcInterval(visitor.getGCInterval())
+                .setThroughput(visitor.getThroughput());
     }
 
     public Summary setHeapSize(HeapSize heapSize) {
@@ -47,26 +37,18 @@ public class Summary {
         return this;
     }
 
-    public String getName() {
-        return name;
-    }
-
     public Summary setName(String name) {
         this.name = name;
         return this;
     }
 
-    public int getCount() {
-        return count;
+    public int getGcCount() {
+        return gcCount;
     }
 
-    public Summary setCount(int count) {
-        this.count = count;
+    public Summary setGcCount(int gcCount) {
+        this.gcCount = gcCount;
         return this;
-    }
-
-    public long getDuration() {
-        return duration;
     }
 
     public Summary setDuration(long duration) {
@@ -74,66 +56,18 @@ public class Summary {
         return this;
     }
 
-    public long getAvgPause() {
-        return avgPause;
-    }
-
-    public Summary setAvgPause(long avgPause) {
-        this.avgPause = avgPause;
-        return this;
-    }
-
-    public long getMaxPause() {
-        return maxPause;
-    }
-
-    public Summary setMaxPause(long maxPause) {
-        this.maxPause = maxPause;
-        return this;
-    }
-
-    public long getMaxPauseTimestamp() {
-        return maxPauseTimestamp;
-    }
-
-    public Summary setMaxPauseTimestamp(long maxPauseTimestamp) {
-        this.maxPauseTimestamp = maxPauseTimestamp;
-        return this;
-    }
-
-    public long getAvgInterval() {
-        return avgInterval;
-    }
-
-    public Summary setAvgInterval(long avgInterval) {
-        this.avgInterval = avgInterval;
-        return this;
-    }
-
-    public long getMinInterval() {
-        return minInterval;
-    }
-
-    public Summary setMinInterval(long minInterval) {
-        this.minInterval = minInterval;
-        return this;
-    }
-
-    public long getMinIntervalTimestamp() {
-        return minIntervalTimestamp;
-    }
-
-    public Summary setMinIntervalTimestamp(long minIntervalTimestamp) {
-        this.minIntervalTimestamp = minIntervalTimestamp;
-        return this;
-    }
-
-    public double getThroughput() {
-        return throughput;
-    }
-
     public Summary setThroughput(double throughput) {
         this.throughput = throughput;
+        return this;
+    }
+
+    public Summary setGcPause(GCPause gcPause) {
+        this.gcPause = gcPause;
+        return this;
+    }
+
+    public Summary setGcInterval(GCInterval gcInterval) {
+        this.gcInterval = gcInterval;
         return this;
     }
 
@@ -142,14 +76,14 @@ public class Summary {
         return "\n" + heapSize.toString() +
                 "Throughput: " + Utils.format(throughput) +
                 name + " GC Duration:" + Utils.formatDuration(duration) + "\n" +
-                name + " GC Count: " + count + "\n" +
+                name + " GC Count: " + gcCount + "\n" +
                 name + " GC Pause Time:\n" +
-                "\tavg: " + avgPause + " ms\n" +
-                "\tmax: " + maxPause + " ms" +
-                "(at " + Utils.formatDate(maxPauseTimestamp) + ")\n" +
+                "\tavg: " + gcPause.getAvgPause() + " ms\n" +
+                "\tmax: " + gcPause.getMaxPause() + " ms" +
+                "(at " + Utils.formatDate(gcPause.getMaxPauseTimestamp()) + ")\n" +
                 name + " GC Interval:\n" +
-                "\tavg: " + (avgInterval) + " ms\n" +
-                "\tmin: " + (minInterval) + " ms" +
-                "(at " + Utils.formatDate(minIntervalTimestamp) + ")\n";
+                "\tavg: " + gcInterval.getAvgInterval() + " ms\n" +
+                "\tmin: " + gcInterval.getMinInterval() + " ms" +
+                "(at " + Utils.formatDate(gcInterval.getMinIntervalTimestamp()) + ")\n";
     }
 }

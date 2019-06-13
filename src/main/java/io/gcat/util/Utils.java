@@ -44,9 +44,9 @@ public class Utils {
             sb.append(" ").append(s).append("sec");
         }
 
-        if (0 == sb.length()) {
+//        if (0 == sb.length()) {
             sb.append(" ").append(duration.getNano() / 1000_000).append("ms");
-        }
+//        }
 
         return sb.toString();
     }

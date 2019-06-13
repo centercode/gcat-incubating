@@ -50,7 +50,19 @@ public class GCInfo {
     /**
      * gc Stop-The-World time, in milliSeconds
      */
-    private long gcPause;
+    private long gcPauseSum;
+
+    private long maxGcPause;
+
+    private long maxGcPauseTimestamp;
+
+    public void addPause(long pause, long timestamp) {
+        gcPauseSum += pause;
+        if (maxGcPause < pause) {
+            maxGcPause = pause;
+            maxGcPauseTimestamp = timestamp;
+        }
+    }
 
     public long getTimestamp() {
         return timestamp;
@@ -124,12 +136,20 @@ public class GCInfo {
         this.heapSize = heapSize;
     }
 
-    public long getGcPause() {
-        return gcPause;
+    public long getGcPauseSum() {
+        return gcPauseSum;
     }
 
-    public void setGcPause(long gcPause) {
-        this.gcPause = gcPause;
+    public void setGcPauseSum(long gcPauseSum) {
+        this.gcPauseSum = gcPauseSum;
+    }
+
+    public long getMaxGcPause() {
+        return maxGcPause;
+    }
+
+    public long getMaxGcPauseTimestamp() {
+        return maxGcPauseTimestamp;
     }
 
     @Override
@@ -144,24 +164,8 @@ public class GCInfo {
                 ", heapUsedBefore=" + heapUsedBefore +
                 ", heapUsedAfter=" + heapUsedAfter +
                 ", heapSize=" + heapSize +
-                ", gcPause=" + gcPause +
+                ", gcPause=" + gcPauseSum +
                 '}';
-    }
-
-    public GCInfo copy() {
-        GCInfo copy = new GCInfo();
-        copy.setTimestamp(timestamp);
-        copy.setBootTime(bootTime);
-        copy.setType(type);
-        copy.setYoungUsedBefore(youngUsedBefore);
-        copy.setYoungUsedAfter(youngUsedAfter);
-        copy.setYoungSize(youngSize);
-        copy.setHeapUsedBefore(heapUsedBefore);
-        copy.setHeapUsedAfter(heapUsedAfter);
-        copy.setHeapSize(heapSize);
-        copy.setGcPause(gcPause);
-
-        return copy;
     }
 
     public enum GCType {

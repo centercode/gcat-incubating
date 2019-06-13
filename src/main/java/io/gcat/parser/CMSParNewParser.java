@@ -2,16 +2,12 @@ package io.gcat.parser;
 
 import io.gcat.entity.GCInfo;
 import io.gcat.entity.JVMParameter;
+import io.gcat.summary.CMSParNewVisitor;
 import io.gcat.summary.Summary;
-import io.gcat.summary.Visitor;
 import io.gcat.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -33,6 +29,10 @@ public class CMSParNewParser implements Parser {
 
     private CMSParser cmsParser = CMSParser.INSTANCE;
 
+    private long endTimestamp;
+
+    private long endBootTime;
+
     private List<GCInfo> list = new LinkedList<>();
 
     public CMSParNewParser(JVMParameter jvmParameter) {
@@ -43,21 +43,16 @@ public class CMSParNewParser implements Parser {
     public void feed(String line) {
         lineCount++;
         try {
-            parseLineInternal(line);
+            parse(line);
         } catch (LineParseException e) {
-            String message = "not parseable line#{}:{}";
             int end = line.length() < 30 ? line.length() : 30;
             String shortLine = line.substring(0, end);
+            String message = "not parseable line#{}:{}";
             logger.warn(message, lineCount, shortLine);
         }
     }
 
-    @Override
-    public void stop() {
-        list.sort(Comparator.comparingLong(GCInfo::getTimestamp));
-    }
-
-    private void parseLineInternal(String line) throws LineParseException {
+    private void parse(String line) throws LineParseException {
         Matcher matcher = startPtn.matcher(line);
         if (!matcher.find()) {
             return;
@@ -66,47 +61,33 @@ public class CMSParNewParser implements Parser {
         long timestamp = Utils.parse(matcher.group(1));
         long bootTime = (long) (Float.valueOf(matcher.group(2)) * 1000);
         if (line.startsWith("[GC (Allocation Failure) ", offset)) {
-            parNewParser.reset(line, offset);
-            parNewParser.parseYoungGeneration();
-            parNewParser.parseHeap();
-            parNewParser.parseGcPause();
+            parNewParser.parse(timestamp, bootTime, line, offset);
             GCInfo gcInfo = parNewParser.getGCInfo();
-            gcInfo.setTimestamp(timestamp);
-            gcInfo.setBootTime(bootTime);
             list.add(gcInfo);
+            recordEnd(timestamp, bootTime);
         } else if (line.startsWith("[GC (CMS Initial Mark)", offset)) {
-            cmsParser.reset(line);
-            cmsParser.parseInitalMarkLine();
+            cmsParser.parseInitialMarkLine(line, timestamp, bootTime);
             GCInfo gcInfo = cmsParser.getGCInfo();
-            gcInfo.setTimestamp(timestamp);
-            gcInfo.setBootTime(bootTime);
             list.add(gcInfo);
         } else if (line.startsWith("[GC (CMS Final Remark)", offset)) {
-            cmsParser.setLine(line);
-            cmsParser.parseFinalMarkLine();
+            cmsParser.parseFinalMarkLine(line, timestamp, bootTime);
         } else if (line.startsWith("[CMS-concurrent-reset:", offset)) {
-            cmsParser.stop();
+            recordEnd(timestamp, bootTime);
         }
+    }
+
+    private void recordEnd(long timestamp, long bootTime) {
+        endTimestamp = timestamp;
+        endBootTime = bootTime;
     }
 
     @Override
     public String query(String sql) {
-//        write(new File("/tmp/gcat.out"));
-        Visitor visitor = Visitor.of(jvmParameter);
+        CMSParNewVisitor visitor = CMSParNewVisitor.of(jvmParameter);
         visitor.visit(list);
+        visitor.setLastTimestamp(endTimestamp);
         Summary heapSummary = Summary.create(visitor);
         System.out.println(heapSummary);
         return null;
-    }
-
-    public void write(File file) {
-        try (FileWriter fileWriter = new FileWriter(file)) {
-            for (GCInfo r : list) {
-                fileWriter.write(r.toString());
-                fileWriter.write("\n");
-            }
-        } catch (IOException e) {
-            logger.error("", e);
-        }
     }
 }

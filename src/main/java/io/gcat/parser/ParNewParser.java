@@ -19,15 +19,23 @@ enum ParNewParser {
 
     private GCInfo gcInfo;
 
-    public ParNewParser reset(String line, int offset) {
+    private void reset(long timestamp, long bootTime, String line, int offset) {
         this.line = line;
         this.offset = offset;
         this.gcInfo = new GCInfo();
+        this.gcInfo.setTimestamp(timestamp);
+        this.gcInfo.setBootTime(bootTime);
         this.gcInfo.setType(GCInfo.GCType.YongGC);
-        return this;
     }
 
-    void parseTimestamp() throws LineParseException {
+    void parse(long timestamp, long bootTime, String line, int offset) {
+        reset(timestamp, bootTime, line, offset);
+        parseYoungGeneration();
+        parseHeap();
+        parseGcPause();
+    }
+
+    private void parseTimestamp() throws LineParseException {
         int s = "2019-05-05T15:52:07.063+0800".length();
         try {
             long timestamp = Utils.parse(line.substring(0, s));
@@ -38,7 +46,7 @@ enum ParNewParser {
         }
     }
 
-    void parseBootTime() {
+    private void parseBootTime() {
         int s = offset;
         int e = line.indexOf(": ", s);
         //parse timestamp
@@ -48,7 +56,7 @@ enum ParNewParser {
         offset = e + 2; //skip ": "
     }
 
-    void parseYoungGeneration() {
+    private void parseYoungGeneration() {
         int s = offset;
         s = line.indexOf("[ParNew: ", s) + "[ParNew: ".length();
         Matcher m = changePtn.matcher(line.substring(s, line.length()));
@@ -65,7 +73,7 @@ enum ParNewParser {
         offset = s + m.group().length() + 2; //skip "] "
     }
 
-    void parseHeap() {
+    private void parseHeap() {
         int s = offset;
         Matcher m = changePtn.matcher(line.substring(s, line.length()));
         if (!m.find()) {
@@ -82,13 +90,13 @@ enum ParNewParser {
         offset = s + m.group().length() + 2; //skip "] "
     }
 
-    void parseGcPause() {
+    private void parseGcPause() {
         int s = offset;
         Matcher m = gcPausePtn.matcher(line.substring(s, line.length()));
         if (m.find()) {
             Float gcPause = Float.valueOf(m.group(1));
             long gcPauseMilli = (long) (gcPause * 1000);
-            gcInfo.setGcPause(gcPauseMilli);
+            gcInfo.addPause(gcPauseMilli, gcInfo.getTimestamp());
         } else {
             throw new IllegalStateException("not found real time.");
         }
@@ -99,6 +107,6 @@ enum ParNewParser {
     }
 
     public GCInfo getGCInfo() {
-        return gcInfo.copy();
+        return gcInfo;
     }
 }
