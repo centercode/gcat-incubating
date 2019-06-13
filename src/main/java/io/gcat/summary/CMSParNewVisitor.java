@@ -19,7 +19,9 @@ public class CMSParNewVisitor implements Visitor {
 
     private long lastTimestamp;
 
-    private int count;
+    private int youngGcCount;
+
+    private int oldGcCount;
 
     private GCPause gcPause = new GCPause();
 
@@ -48,8 +50,8 @@ public class CMSParNewVisitor implements Visitor {
         while (it.hasNext()) {
             visitRest(it.next());
         }
-        gcPause.setCount(count);
-        gcInterval.setCount(count);
+        gcPause.setCount(youngGcCount + oldGcCount * 2);
+        gcInterval.setCount(youngGcCount + oldGcCount);
     }
 
     private void visitFirst(GCInfo first) {
@@ -62,7 +64,15 @@ public class CMSParNewVisitor implements Visitor {
         gcInterval.setIntervalSum(0)
                 .setMinInterval(Long.MAX_VALUE)
                 .setMinIntervalTimestamp(Long.MIN_VALUE);
-        this.count = 1;
+        setCount(first);
+    }
+
+    private void setCount(GCInfo gcInfo) {
+        if (gcInfo.getType() == GCInfo.GCType.YongGC) {
+            this.youngGcCount++;
+        } else if (gcInfo.getType() == GCInfo.GCType.OldGC) {
+            this.oldGcCount++;
+        }
     }
 
     private void visitRest(GCInfo r) {
@@ -73,7 +83,7 @@ public class CMSParNewVisitor implements Visitor {
         this.gcPause.addPause(gcPauseSum, ts);
         this.gcInterval.addInterval(interval, ts);
         lastTimestamp = ts;
-        count++;
+        setCount(r);
     }
 
     private void visitHeapSize(GCInfo info) {
@@ -123,6 +133,6 @@ public class CMSParNewVisitor implements Visitor {
     }
 
     public int getGCCount() {
-        return count;
+        return youngGcCount;
     }
 }
