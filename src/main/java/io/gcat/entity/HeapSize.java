@@ -1,6 +1,6 @@
-package io.gcat.summary;
+package io.gcat.entity;
 
-import io.gcat.util.SizeUtil;
+import io.gcat.util.Utils;
 
 public class HeapSize {
 
@@ -76,9 +76,9 @@ public class HeapSize {
     @Override
     public String toString() {
         return "Heap Size:\n" +
-                "\tyoung: " + SizeUtil.format(youngAllocated) + "(Allocated) " +
-                SizeUtil.format(youngPeak) + "(Peak)\n" +
-                "\told: " + SizeUtil.format(oldAllocated) + "(Allocated) " +
-                SizeUtil.format(oldPeak) + "(Peak)\n";
+                "\tyoung: " + Utils.formatSize(youngAllocated) + "(Allocated) " +
+                Utils.formatSize(youngPeak) + "(Peak)\n" +
+                "\told: " + Utils.formatSize(oldAllocated) + "(Allocated) " +
+                Utils.formatSize(oldPeak) + "(Peak)\n";
     }
 }

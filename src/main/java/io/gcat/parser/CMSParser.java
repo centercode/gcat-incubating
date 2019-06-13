@@ -4,7 +4,7 @@ import io.gcat.entity.GCInfo;
 
 import java.util.regex.Matcher;
 
-public enum CMSParser {
+enum CMSParser {
     INSTANCE;
 
     private String line;

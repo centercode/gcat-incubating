@@ -14,6 +14,12 @@ public class Utils {
 
     private static DateTimeFormatter ISOFormatterWithMilli = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
+
+    public static String formatSize(int kb) {
+        return String.format("%.2fG", kb * 1.0 / 1024 / 1024);
+    }
+
+
     public static String format(double d) {
         return String.format("%.2f%%\n", d * 100);
     }

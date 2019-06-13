@@ -1,4 +1,4 @@
-package io.gcat.visitor;
+package io.gcat.entity;
 
 public class GCInterval {
 

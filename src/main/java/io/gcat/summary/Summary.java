@@ -1,8 +1,9 @@
 package io.gcat.summary;
 
+import io.gcat.entity.HeapSize;
 import io.gcat.util.Utils;
-import io.gcat.visitor.GCInterval;
-import io.gcat.visitor.GCPause;
+import io.gcat.entity.GCInterval;
+import io.gcat.entity.GCPause;
 import io.gcat.visitor.Visitor;
 
 public class Summary {

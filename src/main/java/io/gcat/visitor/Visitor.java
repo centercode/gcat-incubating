@@ -1,6 +1,8 @@
 package io.gcat.visitor;
 
-import io.gcat.summary.HeapSize;
+import io.gcat.entity.GCInterval;
+import io.gcat.entity.GCPause;
+import io.gcat.entity.HeapSize;
 
 public interface Visitor {
 

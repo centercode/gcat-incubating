@@ -2,11 +2,11 @@ package io.gcat.parser;
 
 import io.gcat.entity.GCInfo;
 import io.gcat.entity.JVMParameter;
-import io.gcat.summary.HeapSize;
+import io.gcat.entity.HeapSize;
 import io.gcat.summary.Summary;
 import io.gcat.util.Utils;
-import io.gcat.visitor.GCInterval;
-import io.gcat.visitor.GCPause;
+import io.gcat.entity.GCInterval;
+import io.gcat.entity.GCPause;
 import io.gcat.visitor.Visitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

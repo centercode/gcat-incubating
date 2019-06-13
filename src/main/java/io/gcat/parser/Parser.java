@@ -2,8 +2,8 @@ package io.gcat.parser;
 
 public interface Parser {
 
-    public void feed(String line);
+    void feed(String line);
 
-    public String query(String sql);
+    String query(String sql);
 
 }
