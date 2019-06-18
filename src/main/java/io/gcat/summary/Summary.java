@@ -1,16 +1,14 @@
 package io.gcat.summary;
 
-import io.gcat.entity.HeapSize;
-import io.gcat.util.Utils;
 import io.gcat.entity.GCInterval;
 import io.gcat.entity.GCPause;
+import io.gcat.entity.HeapSize;
+import io.gcat.util.Utils;
 import io.gcat.visitor.Visitor;
 
 public class Summary {
 
     private HeapSize heapSize;
-
-    private String name;
 
     private int gcCount;
 
@@ -24,7 +22,6 @@ public class Summary {
 
     public static Summary create(Visitor visitor) {
         return new Summary()
-                .setName("Heap")
                 .setHeapSize(visitor.getHeapSize())
                 .setGcCount(visitor.getGCCount())
                 .setDuration(visitor.getDuration())
@@ -36,15 +33,6 @@ public class Summary {
     public Summary setHeapSize(HeapSize heapSize) {
         this.heapSize = heapSize;
         return this;
-    }
-
-    public Summary setName(String name) {
-        this.name = name;
-        return this;
-    }
-
-    public int getGcCount() {
-        return gcCount;
     }
 
     public Summary setGcCount(int gcCount) {
@@ -76,13 +64,13 @@ public class Summary {
     public String toString() {
         return "\n" + heapSize.toString() +
                 "Throughput: " + Utils.format(throughput) +
-                name + " GC Duration:" + Utils.formatDuration(duration) + "\n" +
-                name + " GC Count: " + gcCount + "\n" +
-                name + " GC Pause Time:\n" +
+                "Heap GC Duration:" + Utils.formatDuration(duration) + "\n" +
+                "Heap GC Count: " + gcCount + "\n" +
+                " GC Pause Time:\n" +
                 "\tavg: " + gcPause.getAvgPause() + " ms\n" +
                 "\tmax: " + gcPause.getMaxPause() + " ms" +
                 "(at " + Utils.formatDate(gcPause.getMaxPauseTimestamp()) + ")\n" +
-                name + " GC Interval:\n" +
+                "Heap GC Interval:\n" +
                 "\tavg: " + gcInterval.getAvgInterval() + " ms\n" +
                 "\tmin: " + gcInterval.getMinInterval() + " ms" +
                 "(at " + Utils.formatDate(gcInterval.getMinIntervalTimestamp()) + ")\n";
