@@ -1,6 +1,7 @@
 package io.gcat.parser;
 
 import io.gcat.entity.GCInfo;
+import io.gcat.parser.exception.LineParseException;
 import io.gcat.util.Utils;
 
 import java.util.regex.Matcher;

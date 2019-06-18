@@ -1,4 +1,4 @@
-package io.gcat.parser;
+package io.gcat.parser.exception;
 
 
 /**

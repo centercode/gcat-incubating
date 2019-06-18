@@ -3,6 +3,7 @@ package io.gcat.parser;
 import io.gcat.entity.GCInfo;
 import io.gcat.entity.JVMParameter;
 import io.gcat.entity.HeapSize;
+import io.gcat.parser.exception.LineParseException;
 import io.gcat.summary.Summary;
 import io.gcat.util.Utils;
 import io.gcat.entity.GCInterval;
